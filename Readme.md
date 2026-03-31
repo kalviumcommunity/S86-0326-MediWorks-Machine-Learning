@@ -226,27 +226,52 @@ The pipeline follows strict **single-responsibility** design:
 
 ### Prerequisites
 
-- Python 3.10+  
-- Git  
+- Python 3.12
+- Git
 
-### Steps
+### Environment Setup
+
+Create a dedicated virtual environment in the project root and install pinned dependencies.
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/<your-username>/S86-0326-MediWorks-Machine-Learning.git
 cd S86-0326-MediWorks-Machine-Learning
 
-# 2. Create and activate virtual environment
+# 2. Create the virtual environment
 python -m venv venv
 
-# Windows
-venv\Scripts\activate
-# Linux / macOS
+# 3. Activate the environment
+# Windows PowerShell
+venv\Scripts\Activate.ps1
+# Windows Command Prompt
+venv\Scripts\activate.bat
+# macOS / Linux
 source venv/bin/activate
 
-# 3. Install dependencies
-pip install -r requirements.txt
+# 4. Install dependencies
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
+
+### Reproduce from scratch
+
+```bash
+git clone https://github.com/<your-username>/S86-0326-MediWorks-Machine-Learning.git
+cd S86-0326-MediWorks-Machine-Learning
+python -m venv venv
+source venv/bin/activate          # macOS / Linux
+# or venv\Scripts\Activate.ps1  # Windows PowerShell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### Notes
+
+- The `venv/` folder is excluded from version control in `.gitignore`.
+- This setup uses a local Python environment so global packages do not affect project execution.
+- To exit the environment, run `deactivate`.
+- If Python is not available as `python`, use `python3` on your system.
 
 ---
 
