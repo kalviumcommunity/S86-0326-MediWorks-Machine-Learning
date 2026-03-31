@@ -270,6 +270,7 @@ python -m pip install -r requirements.txt
 
 - The `venv/` folder is excluded from version control in `.gitignore`.
 - This setup uses a local Python environment so global packages do not affect project execution.
+- This branch is prepared for pull request submission and contains the reproducible environment setup updates.
 - To exit the environment, run `deactivate`.
 - If Python is not available as `python`, use `python3` on your system.
 
