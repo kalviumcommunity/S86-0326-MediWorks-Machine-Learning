@@ -22,8 +22,8 @@ Design notes
 """
 
 import pandas as pd
-import numpy as np
 
+from src.data_preprocessing import validate_schema
 from src.persistence import load_artifacts
 from src.feature_engineering import drop_id_columns
 from src.config import MODEL_PATH, PIPELINE_PATH, CATEGORICAL_COLS, NUMERICAL_COLS, ID_COLUMNS
@@ -73,16 +73,12 @@ def predict(
         If required feature columns are missing from `new_data`.
     """
     # 1. Load artifacts (model and pipeline)
-    model, pipeline = load_artifacts(model_path=model_path, pipeline_path=pipeline_path)
+    model, pipeline = load_artifacts(
+        model_path=model_path, pipeline_path=pipeline_path)
 
     # 2. Validate required feature columns are present
-    required_feature_cols = NUMERICAL_COLS + CATEGORICAL_COLS
-    missing_cols = set(required_feature_cols) - set(new_data.columns)
-    if missing_cols:
-        raise ValueError(
-            f"New data is missing required feature columns: {sorted(missing_cols)}. "
-            "Ensure the input DataFrame has the same schema as the training data."
-        )
+    validate_schema(new_data, required_columns=(
+        NUMERICAL_COLS + CATEGORICAL_COLS))
 
     # 3. Drop ID columns (not part of the model's feature space)
     X_new = drop_id_columns(new_data.copy(), id_columns=ID_COLUMNS)
@@ -92,12 +88,12 @@ def predict(
     X_new_processed = pipeline.transform(X_new)
 
     # 5. Generate predictions and probabilities
-    predictions   = model.predict(X_new_processed)
+    predictions = model.predict(X_new_processed)
     probabilities = model.predict_proba(X_new_processed)[:, 1]
 
     # 6. Attach results to a copy of the original input for traceability
     result = new_data.copy()
-    result["predicted_readmission"]   = predictions
+    result["predicted_readmission"] = predictions
     result["readmission_probability"] = probabilities.round(4)
 
     return result

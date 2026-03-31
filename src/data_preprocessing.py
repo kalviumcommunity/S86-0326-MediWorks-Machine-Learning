@@ -16,6 +16,7 @@ one logical operation, explicit inputs, explicit outputs, no side effects.
 """
 
 import os
+from collections.abc import Sequence
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -25,7 +26,6 @@ from src.config import (
     TARGET_COLUMN,
     TEST_SIZE,
     RANDOM_STATE,
-    NUMERICAL_COLS,
 )
 
 
@@ -71,7 +71,7 @@ def load_data(filepath: str, datetime_cols: list[str] = DATETIME_COLS) -> pd.Dat
 # 2. Schema Validation
 # ---------------------------------------------------------------------------
 
-def validate_schema(df: pd.DataFrame, required_columns: list[str] = REQUIRED_COLUMNS) -> None:
+def validate_schema(df: pd.DataFrame, required_columns: Sequence[str] = REQUIRED_COLUMNS) -> None:
     """
     Validate that the DataFrame contains all required columns.
 
@@ -101,25 +101,30 @@ def validate_schema(df: pd.DataFrame, required_columns: list[str] = REQUIRED_COL
 
 def clean_data(
     df: pd.DataFrame,
-    numerical_cols: list[str] = NUMERICAL_COLS,
+    target_column: str = TARGET_COLUMN,
 ) -> pd.DataFrame:
     """
-    Clean the raw DataFrame by handling missing values and deriving base columns.
+    Clean the raw DataFrame by applying safe, non-leaky transformations.
 
-    Operations performed (in order):
-    1. Drop duplicate rows.
-    2. Derive `length_of_stay` (days) from admission/discharge datetimes if not
-       already present.
-    3. Fill numerical column NaNs with the column median (computed on this
-       DataFrame — no leakage risk since this is called before splitting).
-    4. Fill categorical column NaNs with the string 'Unknown'.
+     Operations performed (in order):
+     1. Drop duplicate rows.
+     2. Drop rows with missing target labels.
+     3. Derive `length_of_stay` (days) from admission/discharge datetimes if not
+         already present.
+
+     Important
+     ---------
+     This function intentionally does NOT impute feature missing values.
+     Imputation belongs inside the scikit-learn preprocessing pipeline so that
+     statistics (like medians) are learned on training data only, preventing
+     train/test leakage.
 
     Parameters
     ----------
     df : pd.DataFrame
         Raw DataFrame (output of load_data).
-    numerical_cols : list[str]
-        Names of numerical columns to impute with median (default: from config).
+    target_column : str
+        Name of the target column. Rows with missing target values are dropped.
 
     Returns
     -------
@@ -131,6 +136,10 @@ def clean_data(
     # 1. Remove duplicate rows
     df.drop_duplicates(inplace=True)
 
+    # 2. Drop rows without labels
+    if target_column in df.columns:
+        df = df.dropna(subset=[target_column])
+
     # 2. Derive length_of_stay if not already a column
     if "length_of_stay" not in df.columns:
         if "admission_date" in df.columns and "discharge_date" in df.columns:
@@ -138,17 +147,6 @@ def clean_data(
                 (df["discharge_date"] - df["admission_date"]).dt.total_seconds()
                 / 86_400  # convert seconds → days
             ).round(2)
-
-    # 3. Impute numerical columns with median
-    for col in numerical_cols:
-        if col in df.columns:
-            median_val = df[col].median()
-            df[col] = df[col].fillna(median_val)
-
-    # 4. Impute categorical columns with 'Unknown'
-    categorical_cols_in_df = df.select_dtypes(include=["object", "category"]).columns
-    for col in categorical_cols_in_df:
-        df[col] = df[col].fillna("Unknown")
 
     return df
 
