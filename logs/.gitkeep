@@ -1,0 +1,2 @@
+# Experiment logs are written here by main.py after each training run.
+# experiment_log.csv is auto-created on the first run.
