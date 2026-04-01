@@ -20,8 +20,11 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR        = os.path.join(PROJECT_ROOT, "data")
 RAW_DATA_DIR    = os.path.join(DATA_DIR, "raw")
 PROCESSED_DIR   = os.path.join(DATA_DIR, "processed")
+EXTERNAL_DIR    = os.path.join(DATA_DIR, "external")
 MODELS_DIR      = os.path.join(PROJECT_ROOT, "models")
 REPORTS_DIR     = os.path.join(PROJECT_ROOT, "reports")
+LOGS_DIR        = os.path.join(PROJECT_ROOT, "logs")
+NOTEBOOKS_DIR   = os.path.join(PROJECT_ROOT, "notebooks")
 
 # ---------------------------------------------------------------------------
 # Dataset
@@ -100,4 +103,10 @@ PIPELINE_PATH = os.path.join(MODELS_DIR, "preprocessing_pipeline.pkl")
 # Reporting
 # ---------------------------------------------------------------------------
 
-METRICS_REPORT_PATH = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+METRICS_REPORT_PATH  = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+
+# ---------------------------------------------------------------------------
+# Experiment Logging
+# ---------------------------------------------------------------------------
+
+EXPERIMENT_LOG_PATH  = os.path.join(LOGS_DIR, "experiment_log.csv")
