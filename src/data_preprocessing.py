@@ -20,12 +20,14 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from src.config import (
-    REQUIRED_COLUMNS,
+    REQUIRED_CORE_COLUMNS,
     DATETIME_COLS,
     TARGET_COLUMN,
     TEST_SIZE,
     RANDOM_STATE,
     NUMERICAL_COLS,
+    ALL_FEATURES,
+    EXCLUDED_COLUMNS,
 )
 
 
@@ -71,7 +73,12 @@ def load_data(filepath: str, datetime_cols: list[str] = DATETIME_COLS) -> pd.Dat
 # 2. Schema Validation
 # ---------------------------------------------------------------------------
 
-def validate_schema(df: pd.DataFrame, required_columns: list[str] = REQUIRED_COLUMNS) -> None:
+def validate_schema(
+    df: pd.DataFrame,
+    required_core_columns: list[str] = REQUIRED_CORE_COLUMNS,
+    datetime_cols: list[str] = DATETIME_COLS,
+    target_column: str = TARGET_COLUMN,
+) -> None:
     """
     Validate that the DataFrame contains all required columns.
 
@@ -79,20 +86,88 @@ def validate_schema(df: pd.DataFrame, required_columns: list[str] = REQUIRED_COL
     ----------
     df : pd.DataFrame
         DataFrame to validate.
-    required_columns : list[str]
-        Column names that must be present (default: from config).
+    required_core_columns : list[str]
+        Columns that must always be present (default: from config).
+    datetime_cols : list[str]
+        Datetime columns used to derive length of stay (default: from config).
+    target_column : str
+        Name of the target column (default: from config).
 
     Raises
     ------
     ValueError
         With a descriptive message listing exactly which columns are missing.
     """
-    missing = set(required_columns) - set(df.columns)
-    if missing:
+    missing_core = set(required_core_columns) - set(df.columns)
+    if missing_core:
         raise ValueError(
-            f"Dataset is missing required columns: {sorted(missing)}. "
+            f"Dataset is missing required columns: {sorted(missing_core)}. "
             f"Found columns: {sorted(df.columns.tolist())}"
         )
+
+    # Ensure we can compute or use length_of_stay
+    has_los = "length_of_stay" in df.columns
+    has_datetimes = set(datetime_cols).issubset(set(df.columns))
+    if not has_los and not has_datetimes:
+        raise ValueError(
+            "Dataset must contain either 'length_of_stay' OR both datetime columns "
+            f"{datetime_cols} to derive it."
+        )
+
+    if target_column not in df.columns:
+        raise ValueError(
+            f"Target '{target_column}' not found in dataset. "
+            f"Found columns: {sorted(df.columns.tolist())}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# 3b. Feature / Target Separation (X, y)
+# ---------------------------------------------------------------------------
+
+def separate_features_and_target(
+    df: pd.DataFrame,
+    feature_columns: list[str] = ALL_FEATURES,
+    target_column: str = TARGET_COLUMN,
+    excluded_columns: list[str] = EXCLUDED_COLUMNS,
+    verbose: bool = False,
+) -> tuple[pd.DataFrame, pd.Series]:
+    """Separate the feature matrix (X) and target vector (y) with leak checks."""
+    if target_column not in df.columns:
+        raise KeyError(
+            f"Target column '{target_column}' not found in DataFrame. "
+            f"Available columns: {df.columns.tolist()}"
+        )
+
+    if target_column in feature_columns:
+        raise ValueError(
+            "Target leaked into features: TARGET_COLUMN is in ALL_FEATURES")
+
+    overlap = set(feature_columns).intersection(set(excluded_columns))
+    if overlap:
+        raise ValueError(
+            f"Invalid configuration: features overlap with excluded columns: {sorted(overlap)}"
+        )
+
+    missing_features = set(feature_columns) - set(df.columns)
+    if missing_features:
+        raise ValueError(
+            f"Dataset is missing required feature columns: {sorted(missing_features)}. "
+            "Update ALL_FEATURES in config.py or fix the dataset schema."
+        )
+
+    X = df[feature_columns].copy()
+    y = df[target_column].copy()
+
+    if verbose:
+        print(f"Features: {X.shape}")
+        print(f"Target: {y.shape}")
+        try:
+            print(f"Target distribution:\n{y.value_counts(normalize=True)}")
+        except Exception:
+            pass
+
+    return X, y
 
 
 # ---------------------------------------------------------------------------
@@ -146,7 +221,8 @@ def clean_data(
             df[col] = df[col].fillna(median_val)
 
     # 4. Impute categorical columns with 'Unknown'
-    categorical_cols_in_df = df.select_dtypes(include=["object", "category"]).columns
+    categorical_cols_in_df = df.select_dtypes(
+        include=["object", "category"]).columns
     for col in categorical_cols_in_df:
         df[col] = df[col].fillna("Unknown")
 
@@ -193,14 +269,13 @@ def split_data(
     KeyError
         If `target_column` is not present in `df`.
     """
-    if target_column not in df.columns:
-        raise KeyError(
-            f"Target column '{target_column}' not found in DataFrame. "
-            f"Available columns: {df.columns.tolist()}"
-        )
-
-    X = df.drop(columns=[target_column])
-    y = df[target_column]
+    X, y = separate_features_and_target(
+        df,
+        feature_columns=ALL_FEATURES,
+        target_column=target_column,
+        excluded_columns=EXCLUDED_COLUMNS,
+        verbose=False,
+    )
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
