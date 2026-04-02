@@ -1,0 +1,2 @@
+timestamp,algorithm,n_estimators,max_depth,test_size,random_state,accuracy,precision,recall,f1,roc_auc
+2026-04-02 14:12:27,RandomForestClassifier,200,10,0.2,42,0.79,0.2308,0.0857,0.125,0.5881

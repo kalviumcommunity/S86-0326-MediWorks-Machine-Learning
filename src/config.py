@@ -97,6 +97,7 @@ PIPELINE_PATH = os.path.join(MODELS_DIR, "preprocessing_pipeline.pkl")
 # ---------------------------------------------------------------------------
 
 METRICS_REPORT_PATH = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+PROBLEM_DEFINITION_REPORT_PATH = os.path.join(REPORTS_DIR, "problem_definition.json")
 
 # ---------------------------------------------------------------------------
 # Experiment Logging
