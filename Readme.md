@@ -222,6 +222,31 @@ The pipeline follows strict **single-responsibility** design:
 | `predict.py` | `predict` | Inference using saved artifacts |
 | `main.py` | `main` | Orchestrates all steps in sequence |
 
+## Feature Distribution Analysis
+
+The dataset was inspected before any model training or preprocessing step fitting occurred. Numerical features were reviewed using summary statistics, skewness values, histograms, and boxplots. This revealed whether numerical variables are approximately symmetric, strongly skewed, or contain extreme outliers that may distort learning.
+
+Categorical features were inspected using value counts and frequency analysis. Rare categories were identified and reviewed for potential grouping. Inconsistent labels were also checked so that the pipeline can normalize categories before encoding.
+
+Target-based comparisons were performed for at least two numerical features across the binary readmission target. These comparisons help determine whether feature distributions differ meaningfully by class and whether the feature contains predictive signal.
+
+Recommended transformations are documented based on inspection results. Any transformation recommendations are purely based on raw data behavior and do not fit scalers, encoders, or other preprocessing objects on the full dataset.
+
+### Inspection Findings
+
+- Numerical features with heavy positive skew or long right tails may require a log or power transformation before modeling.
+- Features with clear extreme values should be carefully clipped or winsorized to reduce their influence.
+- Categorical variables with very low-frequency levels should be grouped into an `Other` category to prevent sparse dummy variables.
+- The target comparison phase checks whether feature distributions differ across readmitted vs non-readmitted cases, which indicates predictive potential.
+
+### Confirming No Data Leakage
+
+All analysis in this section is based on raw data inspection only. No preprocessing transformations were fit on the full dataset before splitting, and no model training was performed as part of this exploratory analysis.
+
+### Next Steps
+
+Using these documented findings, the next step is to design preprocessing transformations that address skewness, outliers, and categorical imbalance while preserving the dataset's original structure.
+
 ### Key Design Decisions
 
 1. **`fit_transform` only on training data** — the preprocessing pipeline is fitted
