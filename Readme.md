@@ -120,21 +120,82 @@ Raw CSV → load_data() → validate_schema() → clean_data()
 
 ## Dataset Format
 
-| Column          | Description     |
-| --------------- | --------------- |
-| patient_id      | Unique ID       |
-| admission_date  | Admission date  |
-| discharge_date  | Discharge date  |
-| department      | Department name |
-| gender          | Gender          |
-| admission_type  | Type            |
-| bed_type        | Bed category    |
-| age             | Age             |
-| length_of_stay  | LOS             |
-| num_procedures  | Procedures      |
-| num_medications | Medications     |
-| num_diagnoses   | Diagnoses       |
-| readmitted      | Target          |
+The pipeline expects `data/raw/hospital_visits.csv` with the following columns:
+
+| Column Name       | Type        | Description                              |
+|------------------|-------------|------------------------------------------|
+| `patient_id`      | string      | Unique patient identifier (dropped before model) |
+| `admission_date`  | datetime    | Admission date                           |
+| `discharge_date`  | datetime    | Discharge date                           |
+| `department`      | categorical | Emergency / ICU / General Medicine / Surgery / Pediatrics |
+| `gender`          | categorical | Male / Female / Other                    |
+| `admission_type`  | categorical | Emergency / Elective / Urgent            |
+| `bed_type`        | categorical | General / ICU / Private                  |
+| `age`             | float       | Patient age in years                     |
+| `length_of_stay`  | float       | Days between admission and discharge     |
+| `num_procedures`  | float       | Number of procedures during visit        |
+| `num_medications` | float       | Number of medications administered       |
+| `num_diagnoses`   | float       | Number of recorded diagnoses             |
+| `readmitted`      | int (0/1)   | Target: 1 = readmitted within 30 days   |
+
+---
+
+## Feature and Target Definitions
+
+All definitions are centralized in `src/config.py` so every pipeline stage uses the exact same target and feature list.
+
+### Target Variable (y)
+- **Column:** `readmitted`
+- **Type:** Binary classification
+- **Values (business meaning):**
+      - `1` = patient was readmitted within 30 days
+      - `0` = patient was not readmitted within 30 days
+- **What a correct prediction means:** accurately estimating readmission risk so hospitals can plan staffing, bed allocation, and follow-up interventions.
+
+### Feature Columns (X)
+All features are chosen using the rule: **“Would I have this information at prediction time?”**
+
+**Numerical Features**
+- `age` — patient age
+- `length_of_stay` — days stayed (computed from admission/discharge if needed)
+- `num_procedures` — number of procedures during the visit
+- `num_medications` — number of medications administered
+- `num_diagnoses` — number of diagnoses recorded
+
+**Categorical Features**
+- `department` — department of care (e.g., ICU, Emergency)
+- `gender` — patient gender
+- `admission_type` — emergency/elective/urgent
+- `bed_type` — bed category (General/ICU/Private)
+
+### Excluded Columns (and why)
+- `patient_id` — unique identifier (not generalizable; risk of memorization)
+- `admission_date`, `discharge_date` — raw timestamps (not used directly; only used to derive `length_of_stay`)
+
+### Leakage Prevention
+- `readmitted` is never included in features.
+- Only `NUMERICAL_FEATURES + CATEGORICAL_FEATURES` are used as model inputs.
+- Preprocessing is fit on training data only (`fit_transform` on train, `transform` on test/new data).
+
+### Where X and y are defined (in code)
+
+`src/data_preprocessing.py` separates features and target **before** splitting:
+
+```python
+from src.config import TARGET_COLUMN, ALL_FEATURES, EXCLUDED_COLUMNS
+
+# Validate
+assert TARGET_COLUMN not in ALL_FEATURES, "Target leaked into features!"
+
+# Separate
+X = df[ALL_FEATURES]
+y = df[TARGET_COLUMN]
+```
+
+### Evaluation Metrics
+- Precision, Recall, F1-score, ROC-AUC (accuracy is also reported but less reliable if the classes are imbalanced).
+
+> **No real dataset?** Run `python generate_sample_dataset.py` to create 1 000 synthetic rows.
 
 ---
 
