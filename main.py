@@ -35,6 +35,7 @@ from src.config import (
     METRICS_REPORT_PATH,
     MODELS_DIR,
     REPORTS_DIR,
+    PROBLEM_DEFINITION_REPORT_PATH,
 )
 from src.data_preprocessing import load_data, validate_schema, clean_data, split_data
 from src.feature_engineering import build_preprocessing_pipeline, drop_id_columns
@@ -42,6 +43,7 @@ from src.train import train_model
 from src.evaluate import evaluate_model
 from src.persistence import save_artifacts
 from src.predict import predict
+from src.problem_definition import infer_supervised_problem_type
 
 # ---------------------------------------------------------------------------
 # Logging helper
@@ -104,22 +106,30 @@ def main():
     print(BANNER)
 
     # ── Step 1: Load ────────────────────────────────────────
-    print("[1/8] Loading raw data ...")
+    print("[1/9] Loading raw data ...")
     df = load_data(DATA_PATH)
     print(f"      Loaded {df.shape[0]:,} rows × {df.shape[1]} columns.")
 
     # ── Step 2: Validate ────────────────────────────────────
-    print("[2/8] Validating schema ...")
+    print("[2/9] Validating schema ...")
     validate_schema(df)
     print("      Schema OK — all required columns present.")
 
     # ── Step 3: Clean ───────────────────────────────────────
-    print("[3/8] Cleaning data ...")
+    print("[3/9] Cleaning data ...")
     df_clean = clean_data(df)
     print(f"      {df_clean.shape[0]:,} rows after deduplication and imputation.")
 
-    # ── Step 4: Split ───────────────────────────────────────
-    print(f"[4/8] Splitting data (test_size={TEST_SIZE}, random_state={RANDOM_STATE}) ...")
+    # ── Step 4: Define Problem Type ─────────────────────────
+    print("[4/9] Identifying supervised problem type from target variable ...")
+    problem_definition = infer_supervised_problem_type(df_clean[TARGET_COLUMN])
+    print(f"      Task type  : {problem_definition['task_type']}")
+    print(f"      Subtype    : {problem_definition['subtype']}")
+    if problem_definition["task_type"] == "classification":
+        print(f"      Imbalanced : {problem_definition['is_imbalanced']}")
+
+    # ── Step 5: Split ───────────────────────────────────────
+    print(f"[5/9] Splitting data (test_size={TEST_SIZE}, random_state={RANDOM_STATE}) ...")
     X_train, X_test, y_train, y_test = split_data(
         df_clean,
         target_column=TARGET_COLUMN,
@@ -129,8 +139,8 @@ def main():
     print(f"      Training rows : {len(X_train):,}")
     print(f"      Test rows     : {len(X_test):,}")
 
-    # ── Step 5: Feature engineering ─────────────────────────
-    print("[5/8] Dropping ID columns and building preprocessing pipeline ...")
+    # ── Step 6: Feature engineering ─────────────────────────
+    print("[6/9] Dropping ID columns and building preprocessing pipeline ...")
     X_train = drop_id_columns(X_train)
     X_test  = drop_id_columns(X_test)
 
@@ -139,14 +149,14 @@ def main():
     X_test_proc  = pipeline.transform(X_test)         # transform only on test
     print(f"      Preprocessed shape — Train: {X_train_proc.shape}, Test: {X_test_proc.shape}")
 
-    # ── Step 6: Train ───────────────────────────────────────
-    print("[6/8] Training Random Forest model ...")
+    # ── Step 7: Train ───────────────────────────────────────
+    print("[7/9] Training Random Forest model ...")
     from src.config import MODEL_PARAMS
     model = train_model(X_train_proc, y_train, random_state=RANDOM_STATE)
     print("      Training complete.")
 
-    # ── Step 7: Evaluate ────────────────────────────────────
-    print("[7/8] Evaluating model on held-out test set ...")
+    # ── Step 8: Evaluate ────────────────────────────────────
+    print("[8/9] Evaluating model on held-out test set ...")
     metrics = evaluate_model(model, X_test_proc, y_test)
     print()
     print("  ── Evaluation Results ──────────────────────────────────")
@@ -154,8 +164,8 @@ def main():
         print(f"  {key:<12}: {metrics[key]:.4f}")
     print(SEP)
 
-    # ── Step 8: Save artifacts, metrics report, and log ─────
-    print("[8/8] Saving artifacts and logging experiment ...")
+    # ── Step 9: Save artifacts, metrics report, and log ─────
+    print("[9/9] Saving artifacts and logging experiment ...")
 
     os.makedirs(MODELS_DIR,  exist_ok=True)
     os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -167,6 +177,10 @@ def main():
     with open(METRICS_REPORT_PATH, "w") as f:
         json.dump(metrics, f, indent=4)
     print(f"  Metrics report → {METRICS_REPORT_PATH}")
+
+    with open(PROBLEM_DEFINITION_REPORT_PATH, "w") as f:
+        json.dump(problem_definition, f, indent=4)
+    print(f"  Problem definition report → {PROBLEM_DEFINITION_REPORT_PATH}")
 
     log_experiment(metrics, MODEL_PARAMS)
     print(f"  Experiment log → {EXPERIMENT_LOG}")

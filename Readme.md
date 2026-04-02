@@ -181,10 +181,29 @@ S86-0326-MediWorks-Machine-Learning/
 ## ML Pipeline Architecture
 
 * Data preprocessing
+* Problem type identification (classification vs regression)
 * Feature engineering
 * Model training
 * Evaluation
 * Prediction
+
+---
+
+## Problem Definition Before Training
+
+Before training, MEDILENS now automatically inspects the target variable and
+creates a formal problem-definition report.
+
+For the current dataset (`readmitted`), the pipeline identifies:
+
+* Task type: Classification
+* Subtype: Binary classification
+* Class distribution and imbalance ratio
+* Recommended metrics and model families
+
+Generated artifact:
+
+* `reports/problem_definition.json`
 
 ---
 
