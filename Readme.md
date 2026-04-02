@@ -30,32 +30,32 @@ MEDILENS is an AI and Machine Learning-based hospital analytics platform that an
 
 Hospitals generate large volumes of patient visit data every day — admissions, discharges, department transfers, and bed occupancy. Most hospitals still depend on manual reporting and administrator intuition for staffing and resource decisions.
 
-MEDILENS solves this using AI-driven analytics and Machine Learning forecasting to support data-driven hospital resource planning, including a **30-day readmission prediction model** built on a fully modular, reusable Python ML pipeline.
+MEDILENS solves this using AI-driven analytics and Machine Learning forecasting to support data-driven hospital resource planning, including a **30-day readmission prediction model** built on a modular Python ML pipeline.
 
 ---
 
 ## Problem Statement
 
-Hospitals generate vast amounts of patient admission and discharge data, yet administrators often rely on intuition for staffing decisions. This leads to:
+Hospitals rely on intuition instead of data-driven insights, leading to:
 
-* Staff shortage during peak hours
+* Staff shortages during peak hours
 * Department overcrowding
-* Poor bed availability planning
-* Delayed discharge management
+* Poor bed management
+* Delayed discharges
 * Increased waiting time
 
 ---
 
 ## Proposed Solution
 
-MEDILENS provides an AI-based hospital visit analytics system that:
+MEDILENS provides:
 
-* Identifies peak admission times
-* Calculates average LOS
-* Detects overloaded departments
-* Predicts 30-day readmission risk
-* Forecasts bed occupancy trends
-* Provides staffing recommendations
+* Peak admission analysis
+* LOS (Length of Stay) calculation
+* Department overload detection
+* Readmission prediction
+* Bed occupancy forecasting
+* Staffing recommendations
 
 ---
 
@@ -65,7 +65,7 @@ MEDILENS provides an AI-based hospital visit analytics system that:
 
 * Admission trend analysis
 * Peak time detection
-* Department-wise analysis
+* Department-wise insights
 
 ### LOS Analysis
 
@@ -79,7 +79,7 @@ MEDILENS provides an AI-based hospital visit analytics system that:
 
 ### Modular Pipeline
 
-* Clean and reusable architecture
+* Clean architecture
 * Independent modules
 
 ---
@@ -120,21 +120,21 @@ Raw CSV → load_data() → validate_schema() → clean_data()
 
 ## Dataset Format
 
-| Column          | Description     |
-| --------------- | --------------- |
-| patient_id      | Unique ID       |
-| admission_date  | Admission date  |
-| discharge_date  | Discharge date  |
-| department      | Department name |
-| gender          | Gender          |
-| admission_type  | Type            |
-| bed_type        | Bed category    |
-| age             | Age             |
-| length_of_stay  | LOS             |
-| num_procedures  | Procedures      |
-| num_medications | Medications     |
-| num_diagnoses   | Diagnoses       |
-| readmitted      | Target          |
+| Column          | Description    |
+| --------------- | -------------- |
+| patient_id      | Unique ID      |
+| admission_date  | Admission date |
+| discharge_date  | Discharge date |
+| department      | Department     |
+| gender          | Gender         |
+| admission_type  | Type           |
+| bed_type        | Bed            |
+| age             | Age            |
+| length_of_stay  | LOS            |
+| num_procedures  | Procedures     |
+| num_medications | Medications    |
+| num_diagnoses   | Diagnoses      |
+| readmitted      | Target         |
 
 ---
 
@@ -180,30 +180,43 @@ S86-0326-MediWorks-Machine-Learning/
 
 ## ML Pipeline Architecture
 
-* Data preprocessing
-* Problem type identification (classification vs regression)
-* Feature engineering
-* Model training
-* Evaluation
-* Prediction
+The pipeline follows a **modular and clean design**:
+
+| Module                 | Purpose                   |
+| ---------------------- | ------------------------- |
+| config.py              | Configuration             |
+| data_preprocessing.py  | Data cleaning & splitting |
+| feature_engineering.py | Encoding & scaling        |
+| train.py               | Model training            |
+| evaluate.py            | Metrics                   |
+| persistence.py         | Save/load                 |
+| predict.py             | Prediction                |
+| main.py                | Full pipeline             |
 
 ---
 
-## Problem Definition Before Training
+## Feature Distribution Analysis
 
-Before training, MEDILENS now automatically inspects the target variable and
-creates a formal problem-definition report.
+Before training:
 
-For the current dataset (`readmitted`), the pipeline identifies:
+* Numerical features checked using histograms, skewness, and boxplots
+* Categorical features checked using value counts
+* Target comparisons done to check predictive power
 
-* Task type: Classification
-* Subtype: Binary classification
-* Class distribution and imbalance ratio
-* Recommended metrics and model families
+### Findings
 
-Generated artifact:
+* Skewed features → may need transformation
+* Outliers → may need clipping
+* Rare categories → grouped
+* Useful features → show class difference
 
-* `reports/problem_definition.json`
+---
+
+## Data Leakage Prevention
+
+* Only training data uses `fit()`
+* Test data uses `transform()`
+* No preprocessing on full dataset
 
 ---
 
@@ -240,9 +253,9 @@ python main.py
 
 ## Future Enhancements
 
-* Real-time data
-* Doctor prediction
-* Alerts system
+* Real-time data integration
+* Doctor availability prediction
+* Alert system
 * LSTM models
 
 ---
