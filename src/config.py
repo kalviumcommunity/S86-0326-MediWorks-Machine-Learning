@@ -17,11 +17,13 @@ import os
 # Project root is one level above src/
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DATA_DIR        = os.path.join(PROJECT_ROOT, "data")
-RAW_DATA_DIR    = os.path.join(DATA_DIR, "raw")
-PROCESSED_DIR   = os.path.join(DATA_DIR, "processed")
-MODELS_DIR      = os.path.join(PROJECT_ROOT, "models")
-REPORTS_DIR     = os.path.join(PROJECT_ROOT, "reports")
+DATA_DIR           = os.path.join(PROJECT_ROOT, "data")
+RAW_DATA_DIR       = os.path.join(DATA_DIR, "raw")
+PROCESSED_DIR      = os.path.join(DATA_DIR, "processed")
+EXTERNAL_DATA_DIR  = os.path.join(DATA_DIR, "external")
+MODELS_DIR         = os.path.join(PROJECT_ROOT, "models")
+REPORTS_DIR        = os.path.join(PROJECT_ROOT, "reports")
+LOGS_DIR           = os.path.join(PROJECT_ROOT, "logs")
 
 # ---------------------------------------------------------------------------
 # Dataset
