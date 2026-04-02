@@ -4,8 +4,6 @@ config.py
 Centralized configuration for the MEDILENS ML pipeline.
 
 All file paths, model hyperparameters, column names, and constants live here.
-Functions across the pipeline import from this module, avoiding hardcoded values
-and making the project portable and easy to maintain.
 """
 
 import os
@@ -27,7 +25,6 @@ REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 # Dataset
 # ---------------------------------------------------------------------------
 
-# Place your hospital visit CSV file here before running the pipeline
 DATA_PATH = os.path.join(RAW_DATA_DIR, "hospital_visits.csv")
 
 # ---------------------------------------------------------------------------
@@ -102,8 +99,8 @@ RANDOM_STATE = 42     # Global seed — controls all randomness in the pipeline
 # ---------------------------------------------------------------------------
 
 MODEL_PARAMS = {
-    "n_estimators":  200,
-    "max_depth":     10,
+    "n_estimators": 200,
+    "max_depth": 10,
     "min_samples_split": 5,
     "min_samples_leaf":  2,
     "class_weight":  "balanced",   # handles class imbalance in readmission data
@@ -123,3 +120,10 @@ PIPELINE_PATH = os.path.join(MODELS_DIR, "preprocessing_pipeline.pkl")
 # ---------------------------------------------------------------------------
 
 METRICS_REPORT_PATH = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+PROBLEM_DEFINITION_REPORT_PATH = os.path.join(REPORTS_DIR, "problem_definition.json")
+
+# ---------------------------------------------------------------------------
+# Experiment Logging
+# ---------------------------------------------------------------------------
+
+EXPERIMENT_LOG_PATH = os.path.join(LOGS_DIR, "experiment_log.csv")
