@@ -1,87 +1,90 @@
-"""
-generate_sample_dataset.py
---------------------------
-Create a synthetic hospital readmission dataset at data/raw/hospital_visits.csv.
+"""Generate a synthetic hospital_visits.csv dataset.
 
-Run
----
+Creates data/raw/hospital_visits.csv with the schema expected by the MEDILENS
+pipeline. This is only for local testing/demo when a real dataset is not
+available.
+
+Usage:
     python generate_sample_dataset.py
+    python generate_sample_dataset.py --rows 5000 --seed 7
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
 
-from src.config import DATA_PATH, RAW_DATA_DIR, RANDOM_STATE
-
 
 def _sigmoid(x: np.ndarray) -> np.ndarray:
     return 1.0 / (1.0 + np.exp(-x))
 
 
-def generate_dataset(n_rows: int = 1000, random_state: int = RANDOM_STATE) -> pd.DataFrame:
-    """Generate a realistic synthetic dataset for the MEDILENS pipeline."""
-    rng = np.random.default_rng(random_state)
+def generate(rows: int = 1000, seed: int = 42) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
 
     departments = np.array(["Emergency", "ICU", "General Medicine", "Surgery", "Pediatrics"])
     genders = np.array(["Male", "Female", "Other"])
     admission_types = np.array(["Emergency", "Elective", "Urgent"])
     bed_types = np.array(["General", "ICU", "Private"])
 
-    patient_ids = [f"PID{100000 + i}" for i in range(n_rows)]
+    patient_id = np.array([f"P{idx:07d}" for idx in range(1, rows + 1)])
 
-    start_date = datetime(2024, 1, 1)
-    admission_offsets = rng.integers(0, 365, size=n_rows)
-    admission_dates = np.array([start_date + timedelta(days=int(d)) for d in admission_offsets])
+    # Dates within last 2 years
+    start = datetime.now() - timedelta(days=730)
+    admission_offsets = rng.integers(0, 730, size=rows)
+    admission_date = np.array([start + timedelta(days=int(d)) for d in admission_offsets])
 
-    ages = rng.integers(18, 91, size=n_rows)
-    length_of_stay = np.clip(rng.gamma(shape=2.5, scale=2.0, size=n_rows), 1.0, 30.0)
-    discharge_dates = np.array(
-        [admission_dates[i] + timedelta(days=float(length_of_stay[i])) for i in range(n_rows)]
+    # Length of stay (days) with some long-stay tail
+    los = rng.gamma(shape=2.0, scale=2.0, size=rows)  # mean ~4
+    los = np.clip(los, 0.5, 30).round(2)
+    discharge_date = np.array([admission_date[i] + timedelta(days=float(los[i])) for i in range(rows)])
+
+    age = np.clip(rng.normal(55, 18, size=rows), 0, 95).round(0)
+    num_procedures = np.clip(rng.poisson(2.0, size=rows), 0, 12)
+    num_medications = np.clip(rng.poisson(7.0, size=rows), 0, 40)
+    num_diagnoses = np.clip(rng.poisson(3.0, size=rows), 0, 15)
+
+    department = rng.choice(departments, size=rows, p=[0.30, 0.12, 0.35, 0.15, 0.08])
+    gender = rng.choice(genders, size=rows, p=[0.49, 0.49, 0.02])
+    admission_type = rng.choice(admission_types, size=rows, p=[0.55, 0.25, 0.20])
+    bed_type = rng.choice(bed_types, size=rows, p=[0.65, 0.20, 0.15])
+
+    # Create readmission probability based on sensible risk factors
+    # Higher risk: older, longer LOS, ICU/Emergency, more diagnoses/meds.
+    dept_risk = np.where(department == "ICU", 0.7, 0.0) + np.where(department == "Emergency", 0.3, 0.0)
+    admit_risk = np.where(admission_type == "Emergency", 0.5, 0.0)
+
+    logits = (
+        -3.0
+        + 0.02 * (age - 50)
+        + 0.10 * (los - 3)
+        + 0.08 * (num_diagnoses - 3)
+        + 0.03 * (num_medications - 7)
+        + 0.05 * (num_procedures - 2)
+        + dept_risk
+        + admit_risk
     )
-
-    num_procedures = rng.poisson(lam=2.5, size=n_rows)
-    num_medications = rng.poisson(lam=8.0, size=n_rows)
-    num_diagnoses = rng.poisson(lam=3.0, size=n_rows)
-
-    department = rng.choice(departments, size=n_rows, p=[0.32, 0.12, 0.30, 0.16, 0.10])
-    gender = rng.choice(genders, size=n_rows, p=[0.49, 0.49, 0.02])
-    admission_type = rng.choice(admission_types, size=n_rows, p=[0.45, 0.25, 0.30])
-    bed_type = rng.choice(bed_types, size=n_rows, p=[0.72, 0.16, 0.12])
-
-    # Synthetic readmission probability with plausible clinical drivers.
-    risk_linear = (
-        -2.2
-        + 0.018 * (ages - 50)
-        + 0.11 * (length_of_stay - 5)
-        + 0.22 * (num_diagnoses - 3)
-        + 0.09 * (num_procedures - 2)
-        + 0.05 * (num_medications - 8)
-        + 0.7 * (department == "ICU").astype(float)
-        + 0.45 * (department == "Emergency").astype(float)
-        + 0.35 * (admission_type == "Emergency").astype(float)
-    )
-    readmission_prob = _sigmoid(risk_linear)
-    readmitted = rng.binomial(1, np.clip(readmission_prob, 0.03, 0.97), size=n_rows)
+    p_readmit = _sigmoid(logits)
+    readmitted = (rng.random(size=rows) < p_readmit).astype(int)
 
     df = pd.DataFrame(
         {
-            "patient_id": patient_ids,
-            "admission_date": pd.to_datetime(admission_dates),
-            "discharge_date": pd.to_datetime(discharge_dates),
+            "patient_id": patient_id,
+            "admission_date": pd.to_datetime(admission_date),
+            "discharge_date": pd.to_datetime(discharge_date),
             "department": department,
             "gender": gender,
             "admission_type": admission_type,
             "bed_type": bed_type,
-            "age": ages,
-            "length_of_stay": np.round(length_of_stay, 2),
-            "num_procedures": num_procedures,
-            "num_medications": num_medications,
-            "num_diagnoses": num_diagnoses,
+            "age": age.astype(float),
+            "length_of_stay": los.astype(float),
+            "num_procedures": num_procedures.astype(float),
+            "num_medications": num_medications.astype(float),
+            "num_diagnoses": num_diagnoses.astype(float),
             "readmitted": readmitted,
         }
     )
@@ -90,13 +93,22 @@ def generate_dataset(n_rows: int = 1000, random_state: int = RANDOM_STATE) -> pd
 
 
 def main() -> None:
-    os.makedirs(RAW_DATA_DIR, exist_ok=True)
-    df = generate_dataset()
-    df.to_csv(DATA_PATH, index=False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--rows", type=int, default=1000)
+    parser.add_argument("--seed", type=int, default=42)
+    args = parser.parse_args()
 
-    positive_rate = float(df["readmitted"].mean())
-    print(f"Saved synthetic dataset to: {DATA_PATH}")
-    print(f"Rows: {len(df):,} | Columns: {df.shape[1]} | Readmission rate: {positive_rate:.3f}")
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    raw_dir = os.path.join(project_root, "data", "raw")
+    os.makedirs(raw_dir, exist_ok=True)
+
+    out_path = os.path.join(raw_dir, "hospital_visits.csv")
+    df = generate(rows=args.rows, seed=args.seed)
+    df.to_csv(out_path, index=False)
+
+    print(f"Wrote {len(df)} rows → {out_path}")
+    print("Target distribution:")
+    print(df["readmitted"].value_counts(normalize=True).rename("proportion"))
 
 
 if __name__ == "__main__":
