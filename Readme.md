@@ -21,6 +21,7 @@ staffing and resource planning.
 - [Dataset Format](#dataset-format)
 - [Project Structure](#project-structure)
 - [ML Pipeline Architecture](#ml-pipeline-architecture)
+- [Data Splitting Strategy](#data-splitting-strategy)
 - [Installation & Setup](#installation--setup)
 - [Running the Pipeline](#running-the-pipeline)
 - [API Endpoints (Sample)](#api-endpoints-sample)
@@ -276,6 +277,46 @@ The pipeline follows strict **single-responsibility** design:
 
 4. **Centralised configuration** — no hardcoded paths or magic numbers inside
    functions. Everything flows from `src/config.py`.
+
+---
+
+## Data Splitting Strategy
+
+Before trusting any ML model, it must be tested on data it has **never seen**. If we train and test on the same rows, we measure memorization, not learning.
+
+This project enforces a clean boundary between **training data** (used to learn patterns) and **test data** (used only for final evaluation).
+
+### What we do (in this repo)
+
+- **Split ratio:** 80% train / 20% test (`TEST_SIZE = 0.20`)
+- **Reproducible split:** fixed seed (`RANDOM_STATE = 42`)
+- **Stratified split:** preserves the class balance of `readmitted` in both sets
+- **No leakage:** preprocessing is fitted only on training data
+
+### Where it happens in code
+
+- The split is performed in `src/data_preprocessing.py` inside `split_data()` using `train_test_split(..., stratify=y)`.
+- The preprocessing pipeline is fitted only on training data in `main.py`:
+
+```python
+# split first
+X_train, X_test, y_train, y_test = split_data(df_clean)
+
+# fit preprocessing on training only
+pipeline = build_preprocessing_pipeline(CATEGORICAL_COLS, NUMERICAL_COLS)
+X_train_proc = pipeline.fit_transform(X_train)
+
+# apply the same fitted preprocessing to the test set
+X_test_proc = pipeline.transform(X_test)
+```
+
+### Common mistakes we avoid
+
+- Scaling/encoding **before** splitting (leaks test statistics)
+- Using the test set for hyperparameter tuning (inflates metrics)
+- Forgetting stratification in classification (unstable evaluation on imbalanced data)
+
+If you later work with time-series / chronological data, don’t shuffle — split by time (train on earlier dates, test on later dates).
 
 ---
 
