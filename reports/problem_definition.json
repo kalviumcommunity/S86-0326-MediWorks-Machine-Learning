@@ -1,0 +1,29 @@
+{
+    "n_samples": 1000,
+    "n_unique": 2,
+    "task_type": "classification",
+    "subtype": "binary",
+    "class_distribution": {
+        "0": 826,
+        "1": 174
+    },
+    "minority_majority_ratio": 0.2107,
+    "is_imbalanced": false,
+    "suggested_metrics": [
+        "accuracy",
+        "precision",
+        "recall",
+        "f1",
+        "roc_auc"
+    ],
+    "suggested_models": [
+        "LogisticRegression",
+        "RandomForestClassifier",
+        "GradientBoostingClassifier",
+        "XGBoost/LightGBM"
+    ],
+    "notes": [
+        "If classes are imbalanced, avoid relying on accuracy alone.",
+        "Tune decision threshold based on false-positive vs false-negative cost."
+    ]
+}
