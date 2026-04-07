@@ -18,6 +18,8 @@ MEDILENS is an AI and Machine Learning-based hospital analytics platform that an
 * Dataset Format
 * Project Structure
 * ML Pipeline Architecture
+* Feature Distribution Analysis
+* Data Leakage Prevention
 * Installation & Setup
 * Running the Pipeline
 * API Endpoints
@@ -144,14 +146,7 @@ Raw CSV → load_data() → validate_schema() → clean_data()
 S86-0326-MediWorks-Machine-Learning/
 
 ├── data/
-│   ├── raw/
-│   │   └── hospital_visits.csv
-│   ├── processed/
-│   └── external/
-│
 ├── notebooks/
-│   └── 01_eda.ipynb
-│
 ├── src/
 │   ├── config.py
 │   ├── data_preprocessing.py
@@ -160,17 +155,9 @@ S86-0326-MediWorks-Machine-Learning/
 │   ├── evaluate.py
 │   ├── persistence.py
 │   └── predict.py
-│
 ├── models/
-│   ├── random_forest_readmission.pkl
-│   └── preprocessing_pipeline.pkl
-│
 ├── reports/
-│   └── evaluation_metrics.json
-│
 ├── logs/
-│   └── experiment_log.csv
-│
 ├── main.py
 ├── requirements.txt
 └── README.md
@@ -179,8 +166,6 @@ S86-0326-MediWorks-Machine-Learning/
 ---
 
 ## ML Pipeline Architecture
-
-The pipeline follows a **modular and clean design**:
 
 | Module                 | Purpose                   |
 | ---------------------- | ------------------------- |
@@ -197,12 +182,6 @@ The pipeline follows a **modular and clean design**:
 
 ## Feature Distribution Analysis
 
-Before training:
-
-* Numerical features checked using histograms, skewness, and boxplots
-* Categorical features checked using value counts
-* Target comparisons done to check predictive power
-
 ### Findings
 
 * Skewed features → may need transformation
@@ -212,10 +191,62 @@ Before training:
 
 ---
 
+### Confirming No Data Leakage
+
+All analysis is based only on raw data inspection.
+No preprocessing or model training was done before train-test split.
+
+---
+
+### Next Steps
+
+* Handle skewness
+* Handle outliers
+* Balance categorical data
+* Prepare preprocessing pipeline
+
+---
+
+## Feature Type Definition
+
+### Target Variable
+
+* **Column:** `readmitted`
+* **Type:** Binary (0/1)
+
+---
+
+### Numerical Features
+
+* age
+* length_of_stay
+* num_procedures
+* num_medications
+* num_diagnoses
+
+---
+
+### Categorical Features
+
+* department
+* gender
+* admission_type
+* bed_type
+
+---
+
+### Excluded Columns
+
+* patient_id → identifier
+* admission_date → raw timestamp
+* discharge_date → data leakage
+
+---
+
 ## Data Leakage Prevention
 
-* Only training data uses `fit()`
-* Test data uses `transform()`
+* Fit only on training data
+* Transform test data
 * No preprocessing on full dataset
 
 ---

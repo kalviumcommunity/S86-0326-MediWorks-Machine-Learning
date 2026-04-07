@@ -26,6 +26,10 @@ from src.config import (
     TEST_SIZE,
     RANDOM_STATE,
     NUMERICAL_COLS,
+    NUMERICAL_FEATURES,
+    CATEGORICAL_FEATURES,
+    EXCLUDED_COLUMNS,
+    ALL_FEATURES,
 )
 
 
@@ -210,3 +214,104 @@ def split_data(
     )
 
     return X_train, X_test, y_train, y_test
+
+
+# ---------------------------------------------------------------------------
+# 5. Feature Type Validation
+# ---------------------------------------------------------------------------
+
+def validate_feature_separation(
+    X: pd.DataFrame,
+    y: pd.Series,
+    target_column: str = TARGET_COLUMN,
+) -> None:
+    """
+    Validate that features and target are properly separated.
+
+    This function performs critical checks to ensure:
+    1. Target column is not present in the feature DataFrame
+    2. Excluded columns are not present in the feature DataFrame
+    3. All expected features are present
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        Feature DataFrame (after splitting, before preprocessing).
+    y : pd.Series
+        Target series.
+    target_column : str
+        Name of the target column (default: from config).
+
+    Raises
+    ------
+    ValueError
+        If target column is found in features or if excluded columns are present.
+    """
+    # Check 1: Target must not be in features
+    if target_column in X.columns:
+        raise ValueError(
+            f"DATA LEAKAGE DETECTED: Target column '{target_column}' "
+            f"is present in feature DataFrame. This will cause overfitting."
+        )
+
+    # Check 2: Excluded columns must not be in features
+    excluded_present = [col for col in EXCLUDED_COLUMNS if col in X.columns]
+    if excluded_present:
+        raise ValueError(
+            f"INVALID FEATURES DETECTED: Excluded columns {excluded_present} "
+            f"are present in feature DataFrame. These must be removed before modeling."
+        )
+
+    # Check 3: All expected features should be present (after ID removal)
+    expected_features = set(ALL_FEATURES)
+    actual_features = set(X.columns)
+    
+    # Account for ID columns that may have been dropped
+    expected_features_after_id_drop = expected_features - set(EXCLUDED_COLUMNS)
+    
+    missing_features = expected_features_after_id_drop - actual_features
+    if missing_features:
+        print(
+            f"WARNING: Expected features missing from DataFrame: {sorted(missing_features)}"
+        )
+
+
+def print_feature_summary(
+    X: pd.DataFrame,
+    numerical_features: list[str] = NUMERICAL_FEATURES,
+    categorical_features: list[str] = CATEGORICAL_FEATURES,
+) -> None:
+    """
+    Print a summary of feature types for validation and documentation.
+
+    This function provides a clear overview of how features are grouped,
+    which is essential for:
+    - Verifying correct feature type assignment
+    - Documenting the preprocessing pipeline
+    - Debugging preprocessing issues
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        Feature DataFrame (after ID removal, before preprocessing).
+    numerical_features : list[str]
+        List of numerical feature names (default: from config).
+    categorical_features : list[str]
+        List of categorical feature names (default: from config).
+    """
+    # Count features present in DataFrame
+    num_present = [col for col in numerical_features if col in X.columns]
+    cat_present = [col for col in categorical_features if col in X.columns]
+    
+    print("\n" + "="*60)
+    print("FEATURE TYPE SUMMARY")
+    print("="*60)
+    print(f"Total features in DataFrame: {len(X.columns)}")
+    print(f"\nNumerical features: {len(num_present)}")
+    for col in num_present:
+        print(f"  - {col}")
+    print(f"\nCategorical features: {len(cat_present)}")
+    for col in cat_present:
+        print(f"  - {col}")
+    print(f"\nTotal defined features: {len(num_present) + len(cat_present)}")
+    print("="*60 + "\n")

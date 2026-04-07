@@ -1,3 +1,4 @@
+```python
 """
 main.py
 -------
@@ -9,10 +10,6 @@ Entry point that orchestrates the complete ML workflow:
 Run
 ---
     python main.py
-
-Requires data/raw/hospital_visits.csv to exist.
-Generate synthetic data first if needed:
-    python generate_sample_dataset.py
 """
 
 import csv
@@ -29,7 +26,6 @@ from src.config import (
     RANDOM_STATE,
     CATEGORICAL_COLS,
     NUMERICAL_COLS,
-    ID_COLUMNS,
     MODEL_PATH,
     PIPELINE_PATH,
     METRICS_REPORT_PATH,
@@ -37,7 +33,10 @@ from src.config import (
     REPORTS_DIR,
     PROBLEM_DEFINITION_REPORT_PATH,
 )
-from src.data_preprocessing import load_data, validate_schema, clean_data, split_data
+from src.data_preprocessing import (
+    load_data, validate_schema, clean_data, split_data,
+    validate_feature_separation, print_feature_summary
+)
 from src.feature_engineering import build_preprocessing_pipeline, drop_id_columns
 from src.train import train_model
 from src.evaluate import evaluate_model
@@ -45,37 +44,34 @@ from src.persistence import save_artifacts
 from src.predict import predict
 from src.problem_definition import infer_supervised_problem_type
 
+
 # ---------------------------------------------------------------------------
-# Logging helper
+# Logging
 # ---------------------------------------------------------------------------
 
-LOGS_DIR      = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+LOGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
 EXPERIMENT_LOG = os.path.join(LOGS_DIR, "experiment_log.csv")
 
 LOG_FIELDS = [
-    "timestamp", "algorithm", "n_estimators", "max_depth",
-    "test_size", "random_state",
+    "timestamp", "algorithm", "test_size", "random_state",
     "accuracy", "precision", "recall", "f1", "roc_auc",
 ]
 
 
-def log_experiment(metrics: dict, model_params: dict) -> None:
-    """Append one row to logs/experiment_log.csv."""
+def log_experiment(metrics: dict) -> None:
     os.makedirs(LOGS_DIR, exist_ok=True)
     write_header = not os.path.exists(EXPERIMENT_LOG)
 
     row = {
-        "timestamp":    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "algorithm":    "RandomForestClassifier",
-        "n_estimators": model_params.get("n_estimators", ""),
-        "max_depth":    model_params.get("max_depth", ""),
-        "test_size":    TEST_SIZE,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "algorithm": "RandomForestClassifier",
+        "test_size": TEST_SIZE,
         "random_state": RANDOM_STATE,
-        "accuracy":     metrics["accuracy"],
-        "precision":    metrics["precision"],
-        "recall":       metrics["recall"],
-        "f1":           metrics["f1"],
-        "roc_auc":      metrics["roc_auc"],
+        "accuracy": metrics["accuracy"],
+        "precision": metrics["precision"],
+        "recall": metrics["recall"],
+        "f1": metrics["f1"],
+        "roc_auc": metrics["roc_auc"],
     }
 
     with open(EXPERIMENT_LOG, "a", newline="") as f:
@@ -86,116 +82,80 @@ def log_experiment(metrics: dict, model_params: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Pipeline banner
-# ---------------------------------------------------------------------------
-
-BANNER = """
-============================================================
-  MEDILENS — Hospital Readmission Prediction Pipeline
-============================================================
-"""
-
-SEP = "  " + "─" * 56
-
-
-# ---------------------------------------------------------------------------
-# Main pipeline
+# Main Pipeline
 # ---------------------------------------------------------------------------
 
 def main():
-    print(BANNER)
+    print("\nMEDILENS PIPELINE STARTED\n")
 
-    # ── Step 1: Load ────────────────────────────────────────
-    print("[1/9] Loading raw data ...")
+    # Step 1: Load
     df = load_data(DATA_PATH)
-    print(f"      Loaded {df.shape[0]:,} rows × {df.shape[1]} columns.")
 
-    # ── Step 2: Validate ────────────────────────────────────
-    print("[2/9] Validating schema ...")
+    # Step 2: Validate
     validate_schema(df)
-    print("      Schema OK — all required columns present.")
 
-    # ── Step 3: Clean ───────────────────────────────────────
-    print("[3/9] Cleaning data ...")
+    # Step 3: Clean
     df_clean = clean_data(df)
-    print(f"      {df_clean.shape[0]:,} rows after deduplication and imputation.")
 
-    # ── Step 4: Define Problem Type ─────────────────────────
-    print("[4/9] Identifying supervised problem type from target variable ...")
+    # Step 4: Problem Type
     problem_definition = infer_supervised_problem_type(df_clean[TARGET_COLUMN])
-    print(f"      Task type  : {problem_definition['task_type']}")
-    print(f"      Subtype    : {problem_definition['subtype']}")
-    if problem_definition["task_type"] == "classification":
-        print(f"      Imbalanced : {problem_definition['is_imbalanced']}")
+    print(problem_definition)
 
-    # ── Step 5: Split ───────────────────────────────────────
-    print(f"[5/9] Splitting data (test_size={TEST_SIZE}, random_state={RANDOM_STATE}) ...")
+    # Step 5: Split
     X_train, X_test, y_train, y_test = split_data(
         df_clean,
         target_column=TARGET_COLUMN,
         test_size=TEST_SIZE,
         random_state=RANDOM_STATE,
     )
-    print(f"      Training rows : {len(X_train):,}")
-    print(f"      Test rows     : {len(X_test):,}")
 
-    # ── Step 6: Feature engineering ─────────────────────────
-    print("[6/9] Dropping ID columns and building preprocessing pipeline ...")
+    # Step 6: Feature Engineering + Validation
+    validate_feature_separation(X_train, y_train, target_column=TARGET_COLUMN)
+
     X_train = drop_id_columns(X_train)
     X_test  = drop_id_columns(X_test)
 
-    pipeline     = build_preprocessing_pipeline(CATEGORICAL_COLS, NUMERICAL_COLS)
-    X_train_proc = pipeline.fit_transform(X_train)   # fit + transform on train only
-    X_test_proc  = pipeline.transform(X_test)         # transform only on test
-    print(f"      Preprocessed shape — Train: {X_train_proc.shape}, Test: {X_test_proc.shape}")
+    print_feature_summary(X_train, NUMERICAL_COLS, CATEGORICAL_COLS)
 
-    # ── Step 7: Train ───────────────────────────────────────
-    print("[7/9] Training Random Forest model ...")
-    from src.config import MODEL_PARAMS
+    pipeline = build_preprocessing_pipeline(CATEGORICAL_COLS, NUMERICAL_COLS)
+
+    X_train_proc = pipeline.fit_transform(X_train)
+    X_test_proc  = pipeline.transform(X_test)
+
+    # Step 7: Train
     model = train_model(X_train_proc, y_train, random_state=RANDOM_STATE)
-    print("      Training complete.")
 
-    # ── Step 8: Evaluate ────────────────────────────────────
-    print("[8/9] Evaluating model on held-out test set ...")
+    # Step 8: Evaluate
     metrics = evaluate_model(model, X_test_proc, y_test)
-    print()
-    print("  ── Evaluation Results ──────────────────────────────────")
-    for key in ("accuracy", "precision", "recall", "f1", "roc_auc"):
-        print(f"  {key:<12}: {metrics[key]:.4f}")
-    print(SEP)
 
-    # ── Step 9: Save artifacts, metrics report, and log ─────
-    print("[9/9] Saving artifacts and logging experiment ...")
+    print("\nEvaluation Results:")
+    for k, v in metrics.items():
+        print(f"{k}: {v:.4f}")
 
-    os.makedirs(MODELS_DIR,  exist_ok=True)
+    # Step 9: Save
+    os.makedirs(MODELS_DIR, exist_ok=True)
     os.makedirs(REPORTS_DIR, exist_ok=True)
 
     save_artifacts(model, pipeline, MODEL_PATH, PIPELINE_PATH)
-    print(f"  Model saved    → {MODEL_PATH}")
-    print(f"  Pipeline saved → {PIPELINE_PATH}")
 
     with open(METRICS_REPORT_PATH, "w") as f:
         json.dump(metrics, f, indent=4)
-    print(f"  Metrics report → {METRICS_REPORT_PATH}")
 
     with open(PROBLEM_DEFINITION_REPORT_PATH, "w") as f:
         json.dump(problem_definition, f, indent=4)
-    print(f"  Problem definition report → {PROBLEM_DEFINITION_REPORT_PATH}")
 
-    log_experiment(metrics, MODEL_PARAMS)
-    print(f"  Experiment log → {EXPERIMENT_LOG}")
+    log_experiment(metrics)
 
-    # ── Quick prediction demo ────────────────────────────────
-    print()
+    # Step 10: Predict sample
     sample = X_test.head(3).copy()
     result = predict(sample, model_path=MODEL_PATH, pipeline_path=PIPELINE_PATH)
-    print("  ── Sample Predictions ──────────────────────────────────")
-    print(result[["predicted_readmission", "readmission_probability"]].to_string(index=False))
-    print(SEP)
-    print()
-    print("  Pipeline complete. MEDILENS model is ready.")
-    print()
+
+    print("\nSample Predictions:")
+    print(result)
+
+    print("\nPIPELINE COMPLETED\n")
 
 
 if __name__ == "__main__":
     main()
+```
