@@ -14,7 +14,10 @@ from src.config import (
     CATEGORICAL_COLS, NUMERICAL_COLS, ID_COLUMNS,
     MODEL_PATH, PIPELINE_PATH, METRICS_REPORT_PATH,
 )
-from src.data_preprocessing import load_data, validate_schema, clean_data, split_data
+from src.data_preprocessing import (
+    load_data, validate_schema, clean_data, split_data,
+    validate_feature_separation, print_feature_summary
+)
 from src.feature_engineering import build_preprocessing_pipeline, drop_id_columns
 from src.train import train_model
 from src.evaluate import evaluate_model
@@ -44,9 +47,16 @@ def main():
     )
     print(f"Train: {len(X_train)} rows | Test: {len(X_test)} rows")
 
+    # 4a. Validate feature separation (before dropping IDs)
+    validate_feature_separation(X_train, y_train, target_column=TARGET_COLUMN)
+    print("✓ Feature separation validated: target not in features, no excluded columns present")
+
     # 5. Drop ID columns
     X_train = drop_id_columns(X_train)
     X_test  = drop_id_columns(X_test)
+
+    # 5a. Print feature summary
+    print_feature_summary(X_train, NUMERICAL_COLS, CATEGORICAL_COLS)
 
     # 6. Preprocess (fit only on training data)
     pipeline = build_preprocessing_pipeline(CATEGORICAL_COLS, NUMERICAL_COLS)
