@@ -291,6 +291,17 @@ python main.py
 
 ---
 
+## Feature Engineering Notes
+
+The current pipeline keeps preprocessing simple and safe:
+
+* Numerical features are scaled with `StandardScaler`
+* Categorical features are one-hot encoded
+* Train/test split happens before fitting any transformer
+* The fitted preprocessing pipeline can be saved and reused for prediction
+
+---
+
 ## License
 
 MIT License
@@ -300,4 +311,4 @@ MIT License
 ## Team
 
 **MediWorks**
-Healthcare + AI/ML
+Healthcare analytics team behind MEDILENS.
