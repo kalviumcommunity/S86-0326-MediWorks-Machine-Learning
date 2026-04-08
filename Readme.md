@@ -19,12 +19,16 @@ MEDILENS is an AI and Machine Learning-based hospital analytics platform that an
 * Project Structure
 * ML Pipeline Architecture
 * Feature Distribution Analysis
+* Feature Type Definition
 * Data Leakage Prevention
+* Baseline Model Comparison
+* Feature Engineering Notes
 * Installation & Setup
 * Running the Pipeline
 * API Endpoints
 * Future Enhancements
 * License
+* Team
 
 ---
 
@@ -144,7 +148,6 @@ Raw CSV → load_data() → validate_schema() → clean_data()
 
 ```
 S86-0326-MediWorks-Machine-Learning/
-
 ├── data/
 ├── notebooks/
 ├── src/
@@ -189,14 +192,9 @@ S86-0326-MediWorks-Machine-Learning/
 * Rare categories → grouped
 * Useful features → show class difference
 
----
-
 ### Confirming No Data Leakage
 
-All analysis is based only on raw data inspection.
-No preprocessing or model training was done before train-test split.
-
----
+All analysis is based only on raw data inspection. No preprocessing or model training was done before train-test split.
 
 ### Next Steps
 
@@ -214,8 +212,6 @@ No preprocessing or model training was done before train-test split.
 * **Column:** `readmitted`
 * **Type:** Binary (0/1)
 
----
-
 ### Numerical Features
 
 * age
@@ -224,16 +220,12 @@ No preprocessing or model training was done before train-test split.
 * num_medications
 * num_diagnoses
 
----
-
 ### Categorical Features
 
 * department
 * gender
 * admission_type
 * bed_type
-
----
 
 ### Excluded Columns
 
@@ -251,7 +243,41 @@ No preprocessing or model training was done before train-test split.
 
 ---
 
-## Installation
+## Baseline Model Comparison
+
+### Purpose
+
+Establish a minimum benchmark to ensure the ML model provides real value.
+
+### Baseline Strategy
+
+* Model: `DummyClassifier` (most_frequent)
+* Always predicts majority class
+
+### Key Insight
+
+* Accuracy alone is misleading
+* Precision, Recall, F1, ROC-AUC are essential
+* Baseline ensures model usefulness
+
+### Run Comparison
+
+```bash
+python run_baseline_comparison.py
+```
+
+---
+
+## Feature Engineering Notes
+
+* Numerical features scaled using `StandardScaler`
+* Categorical features encoded using One-Hot Encoding
+* Train/test split done before preprocessing
+* Pipeline reusable for prediction
+
+---
+
+## Installation & Setup
 
 ```bash
 git clone <repo-url>
@@ -263,7 +289,7 @@ pip install -r requirements.txt
 
 ---
 
-## Run Project
+## Running the Pipeline
 
 ```bash
 python main.py
@@ -288,17 +314,6 @@ python main.py
 * Doctor availability prediction
 * Alert system
 * LSTM models
-
----
-
-## Feature Engineering Notes
-
-The current pipeline keeps preprocessing simple and safe:
-
-* Numerical features are scaled with `StandardScaler`
-* Categorical features are one-hot encoded
-* Train/test split happens before fitting any transformer
-* The fitted preprocessing pipeline can be saved and reused for prediction
 
 ---
 

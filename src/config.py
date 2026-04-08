@@ -1,4 +1,3 @@
-```python
 """
 config.py
 ---------
@@ -127,7 +126,8 @@ PIPELINE_PATH = os.path.join(MODELS_DIR, "preprocessing_pipeline.pkl")
 # Reports
 # ---------------------------------------------------------------------------
 
-METRICS_REPORT_PATH = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+METRICS_REPORT_PATH            = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+BASELINE_COMPARISON_PATH      = os.path.join(REPORTS_DIR, "baseline_comparison.json")
 PROBLEM_DEFINITION_REPORT_PATH = os.path.join(REPORTS_DIR, "problem_definition.json")
 
 # ---------------------------------------------------------------------------
@@ -135,4 +135,3 @@ PROBLEM_DEFINITION_REPORT_PATH = os.path.join(REPORTS_DIR, "problem_definition.j
 # ---------------------------------------------------------------------------
 
 EXPERIMENT_LOG_PATH = os.path.join(LOGS_DIR, "experiment_log.csv")
-```
