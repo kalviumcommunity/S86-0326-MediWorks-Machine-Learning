@@ -206,3 +206,4 @@ PIPELINE_PATH = os.path.join(MODELS_DIR, "preprocessing_pipeline.pkl")
 # ---------------------------------------------------------------------------
 
 METRICS_REPORT_PATH = os.path.join(REPORTS_DIR, "evaluation_metrics.json")
+BASELINE_COMPARISON_PATH = os.path.join(REPORTS_DIR, "baseline_comparison.json")
