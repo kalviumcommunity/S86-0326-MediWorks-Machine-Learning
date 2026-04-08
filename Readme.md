@@ -1,114 +1,105 @@
 # MEDILENS — AI-Powered Hospital Visit Analytics & Resource Optimization System
 
-**Project Name:** MEDILENS  
-**Team Name:** MediWorks  
+**Project Name:** MEDILENS
+**Team Name:** MediWorks
 
-MEDILENS is an AI and Machine Learning-based hospital analytics platform that analyses patient
-admission and discharge data to identify peak admission times, calculate average length of stay
-(LOS), detect overloaded departments, and **predict patient readmission risk** for better
-staffing and resource planning.
+MEDILENS is an AI and Machine Learning-based hospital analytics platform that analyses patient admission and discharge data to identify peak admission times, calculate average length of stay (LOS), detect overloaded departments, and **predict patient readmission risk** for better staffing and resource planning.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Problem Statement](#problem-statement)
-- [Proposed Solution](#proposed-solution)
-- [Key Features](#key-features)
-- [System Workflow](#system-workflow)
-- [Tech Stack](#tech-stack)
-- [Dataset Format](#dataset-format)
-- [Project Structure](#project-structure)
-- [ML Pipeline Architecture](#ml-pipeline-architecture)
-- [Installation & Setup](#installation--setup)
-- [Running the Pipeline](#running-the-pipeline)
-- [API Endpoints (Sample)](#api-endpoints-sample)
-- [Future Enhancements](#future-enhancements)
-- [License](#license)
+* Overview
+* Problem Statement
+* Proposed Solution
+* Key Features
+* System Workflow
+* Tech Stack
+* Dataset Format
+* Project Structure
+* ML Pipeline Architecture
+* Feature Distribution Analysis
+* Feature Type Definition
+* Data Leakage Prevention
+* Baseline Model Comparison
+* Feature Engineering Notes
+* Installation & Setup
+* Running the Pipeline
+* API Endpoints
+* Future Enhancements
+* License
+* Team
 
 ---
 
 ## Overview
 
-Hospitals generate large volumes of patient visit data every day — admissions, discharges,
-department transfers, and bed occupancy.  Most hospitals still depend on manual reporting and
-administrator intuition for staffing and resource decisions.
+Hospitals generate large volumes of patient visit data every day — admissions, discharges, department transfers, and bed occupancy. Most hospitals still depend on manual reporting and administrator intuition for staffing and resource decisions.
 
-MEDILENS solves this using AI-driven analytics and Machine Learning forecasting to support
-data-driven hospital resource planning, including a **30-day readmission prediction model**
-built on a fully modular, reusable Python ML pipeline.
+MEDILENS solves this using AI-driven analytics and Machine Learning forecasting to support data-driven hospital resource planning, including a **30-day readmission prediction model** built on a modular Python ML pipeline.
 
 ---
 
 ## Problem Statement
 
-Hospitals generate vast amounts of patient admission and discharge data, yet administrators
-often rely on intuition for staffing decisions.  This leads to:
+Hospitals rely on intuition instead of data-driven insights, leading to:
 
-- Staff shortage during peak hours  
-- Department overcrowding (Emergency, ICU, General Medicine)  
-- Poor bed availability planning  
-- Delayed discharge management  
-- Increased waiting time and reduced service quality  
+* Staff shortages during peak hours
+* Department overcrowding
+* Poor bed management
+* Delayed discharges
+* Increased waiting time
 
 ---
 
 ## Proposed Solution
 
-MEDILENS provides an AI-based hospital visit analytics system that:
+MEDILENS provides:
 
-- Identifies peak admission hours / days / months  
-- Calculates average length of stay (LOS)  
-- Detects departments facing consistent overload  
-- **Predicts 30-day readmission risk** using a Random Forest classifier  
-- Forecasts department load and bed occupancy trends  
-- Generates staffing and resource planning recommendations  
+* Peak admission analysis
+* LOS (Length of Stay) calculation
+* Department overload detection
+* Readmission prediction
+* Bed occupancy forecasting
+* Staffing recommendations
 
 ---
 
 ## Key Features
 
-### 1. Hospital Visit Analytics
-- Hourly, daily, and monthly admission trend analysis  
-- Peak admission time detection  
-- Department-wise patient inflow analysis  
-- Discharge trend analysis  
+### Hospital Analytics
 
-### 2. Length of Stay (LOS) Analysis
-- Overall hospital average LOS calculation  
-- Department-wise LOS calculation  
-- Identification of long-stay patient patterns  
+* Admission trend analysis
+* Peak time detection
+* Department-wise insights
 
-### 3. Department Overload Detection
-- Detects consistently overloaded departments  
-- Overcrowding trend visualisation  
+### LOS Analysis
 
-### 4. Machine Learning Predictions
-- **30-day readmission prediction** (core ML model)  
-- Admission forecasting (next day / week / month)  
-- Bed occupancy forecasting  
+* Overall LOS
+* Department-wise LOS
 
-### 5. Modular ML Pipeline
-- Clean separation of data loading, preprocessing, feature engineering,
-  training, evaluation, persistence, and prediction  
-- Each stage is encapsulated in its own function and module  
-- Every function is documented, typed, and independently testable  
+### ML Predictions
+
+* Readmission prediction
+* Admission forecasting
+
+### Modular Pipeline
+
+* Clean architecture
+* Independent modules
 
 ---
 
 ## System Workflow
 
 ```
-Raw CSV  →  load_data()  →  validate_schema()  →  clean_data()
-         →  split_data()
-         →  build_preprocessing_pipeline().fit_transform(X_train)
-                                          .transform(X_test)
-         →  train_model()
-         →  evaluate_model()
-         →  save_artifacts()
-                               ↓ (later)
-               load_artifacts()  →  predict()  →  Output DataFrame
+Raw CSV → load_data() → validate_schema() → clean_data()
+        → split_data()
+        → preprocessing.fit(X_train)
+        → transform(X_test)
+        → train_model()
+        → evaluate_model()
+        → save_artifacts()
 ```
 
 ---
@@ -116,42 +107,40 @@ Raw CSV  →  load_data()  →  validate_schema()  →  clean_data()
 ## Tech Stack
 
 ### Machine Learning
-- Python 3.10+  
-- Pandas, NumPy  
-- Scikit-learn (Random Forest, ColumnTransformer, OneHotEncoder, StandardScaler)  
-- Joblib (artifact serialisation)  
 
-### Frontend (planned)
-- React.js (Vite)  
-- Chart.js / Recharts  
+* Python
+* Pandas, NumPy
+* Scikit-learn
+* Joblib
 
-### Backend (planned)
-- Python (FastAPI)  
-- REST API  
+### Frontend (Planned)
+
+* React.js
+* Chart.js
+
+### Backend (Planned)
+
+* FastAPI
 
 ---
 
 ## Dataset Format
 
-The pipeline expects `data/raw/hospital_visits.csv` with the following columns:
-
-| Column Name       | Type        | Description                              |
-|------------------|-------------|------------------------------------------|
-| `patient_id`      | string      | Unique patient identifier (dropped before model) |
-| `admission_date`  | datetime    | Admission date                           |
-| `discharge_date`  | datetime    | Discharge date                           |
-| `department`      | categorical | Emergency / ICU / General Medicine / Surgery / Pediatrics |
-| `gender`          | categorical | Male / Female / Other                    |
-| `admission_type`  | categorical | Emergency / Elective / Urgent            |
-| `bed_type`        | categorical | General / ICU / Private                  |
-| `age`             | float       | Patient age in years                     |
-| `length_of_stay`  | float       | Days between admission and discharge     |
-| `num_procedures`  | float       | Number of procedures during visit        |
-| `num_medications` | float       | Number of medications administered       |
-| `num_diagnoses`   | float       | Number of recorded diagnoses             |
-| `readmitted`      | int (0/1)   | Target: 1 = readmitted within 30 days   |
-
-> **No real dataset?** Run `python generate_sample_dataset.py` to create 1 000 synthetic rows.
+| Column          | Description    |
+| --------------- | -------------- |
+| patient_id      | Unique ID      |
+| admission_date  | Admission date |
+| discharge_date  | Discharge date |
+| department      | Department     |
+| gender          | Gender         |
+| admission_type  | Type           |
+| bed_type        | Bed            |
+| age             | Age            |
+| length_of_stay  | LOS            |
+| num_procedures  | Procedures     |
+| num_medications | Medications    |
+| num_diagnoses   | Diagnoses      |
+| readmitted      | Target         |
 
 ---
 
@@ -159,445 +148,98 @@ The pipeline expects `data/raw/hospital_visits.csv` with the following columns:
 
 ```
 S86-0326-MediWorks-Machine-Learning/
-│
 ├── data/
-│   ├── raw/
-│   │   └── hospital_visits.csv          ← place your dataset here
-│   ├── processed/                       ← cleaned and derived datasets
-│   └── external/                        ← third-party or reference files
-│
-├── notebooks/                          ← exploratory analysis only
-│
+├── notebooks/
 ├── src/
-│   ├── __init__.py                      ← makes src/ a Python package
-│   ├── config.py                        ← all paths, column names, hyperparams
-│   ├── data_preprocessing.py            ← load, validate, clean, split
-│   ├── feature_engineering.py           ← drop IDs, build ColumnTransformer
-│   ├── train.py                         ← fit RandomForest, return model
-│   ├── evaluate.py                      ← compute metrics dict (no printing)
-│   ├── persistence.py                   ← save / load artifacts with joblib
-│   └── predict.py                       ← inference (transform, never fit)
-│
-├── models/                             ← serialized model artifacts
-├── reports/                            ← evaluation outputs and summaries
-├── logs/                               ← pipeline execution and experiment logs
-├── main.py                              ← orchestration script (full pipeline)
-├── generate_sample_dataset.py           ← create synthetic data for testing
+│   ├── config.py
+│   ├── data_preprocessing.py
+│   ├── feature_engineering.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── persistence.py
+│   └── predict.py
+├── models/
+├── reports/
+├── logs/
+├── main.py
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Repository Structure Explanation
+## ML Pipeline Architecture
 
-The repository is organized so each top-level folder has a single responsibility. `data/raw/` contains immutable source datasets that are never overwritten. `data/processed/` stores derived, cleaned datasets created by the preprocessing stage. `data/external/` is available for third-party or reference files that supplement the core raw data. `notebooks/` is reserved for exploratory work, while `src/` contains the production-ready pipeline code used for ingestion, transformation, training, evaluation, prediction, and persistence.
-
-`models/` stores serialized model and pipeline artifacts, and `reports/` stores evaluation results and diagnostic outputs. `logs/` is reserved for execution records and experiment metadata. This separation prevents mixing generated assets with source code and ensures the project remains reproducible and maintainable.
-
-## Data Flow Mapping
-
-The pipeline begins with raw input files in `data/raw/`. The `src/data_preprocessing.py` module ingests and validates raw data, and can optionally write cleaned datasets to `data/processed/`. The `src/feature_engineering.py` module builds a reusable transformation pipeline that is fit on training data and applied to held-out test data and new inference data. The `src/train.py` module fits the model, while `src/persistence.py` saves the trained model and preprocessing pipeline to `models/`. The `src/evaluate.py` module computes metrics and writes evaluation artifacts to `reports/`. At prediction time, `src/predict.py` loads saved artifacts and transforms new data using the saved preprocessing pipeline before generating predictions.
-
-## Design Justification
-
-Separating raw and processed data protects the immutable source dataset and avoids accidental leakage. Raw files remain the ground truth, while processed files are reproducible outputs that can be regenerated from raw data. Keeping notebooks separate from `src/` maintains a clean distinction between exploratory analysis and production logic. This makes it easier to migrate stable code into reusable modules and prevents experimental work from introducing hidden dependencies.
-
-Models are saved outside `src/` because serialized artifacts are outputs, not source code. This keeps the source package clean and makes artifact versioning explicit. Logs and reports are independent to preserve a clear audit trail: `logs/` captures execution and experiment metadata, while `reports/` stores evaluation outcomes and visual summaries. `src/config.py` centralizes file paths and configuration values, ensuring code does not rely on hardcoded environment-specific paths and making the pipeline portable across machines.
+| Module                 | Purpose                   |
+| ---------------------- | ------------------------- |
+| config.py              | Configuration             |
+| data_preprocessing.py  | Data cleaning & splitting |
+| feature_engineering.py | Encoding & scaling        |
+| train.py               | Model training            |
+| evaluate.py            | Metrics                   |
+| persistence.py         | Save/load                 |
+| predict.py             | Prediction                |
+| main.py                | Full pipeline             |
 
 ---
 
-## ML Pipeline Architecture
-
-The pipeline follows strict **single-responsibility** design:
-
-| Module | Function(s) | Purpose |
-|---|---|---|
-| `config.py` | — | Central configuration (paths, columns, hyperparams) |
-| `data_preprocessing.py` | `load_data`, `validate_schema`, `clean_data`, `split_data` | Ingest → validate → clean → split |
-| `feature_engineering.py` | `drop_id_columns`, `build_preprocessing_pipeline` | Encode + scale features |
-| `train.py` | `train_model` | Fit model, return artifact |
-| `evaluate.py` | `evaluate_model` | Compute metrics dict |
-| `persistence.py` | `save_artifacts`, `load_artifacts` | Joblib serialisation |
-| `predict.py` | `predict` | Inference using saved artifacts |
-| `main.py` | `main` | Orchestrates all steps in sequence |
-
 ## Feature Distribution Analysis
 
-The dataset was inspected before any model training or preprocessing step fitting occurred. Numerical features were reviewed using summary statistics, skewness values, histograms, and boxplots. This revealed whether numerical variables are approximately symmetric, strongly skewed, or contain extreme outliers that may distort learning.
+### Findings
 
-Categorical features were inspected using value counts and frequency analysis. Rare categories were identified and reviewed for potential grouping. Inconsistent labels were also checked so that the pipeline can normalize categories before encoding.
-
-Target-based comparisons were performed for at least two numerical features across the binary readmission target. These comparisons help determine whether feature distributions differ meaningfully by class and whether the feature contains predictive signal.
-
-Recommended transformations are documented based on inspection results. Any transformation recommendations are purely based on raw data behavior and do not fit scalers, encoders, or other preprocessing objects on the full dataset.
-
-### Inspection Findings
-
-- Numerical features with heavy positive skew or long right tails may require a log or power transformation before modeling.
-- Features with clear extreme values should be carefully clipped or winsorized to reduce their influence.
-- Categorical variables with very low-frequency levels should be grouped into an `Other` category to prevent sparse dummy variables.
-- The target comparison phase checks whether feature distributions differ across readmitted vs non-readmitted cases, which indicates predictive potential.
+* Skewed features → may need transformation
+* Outliers → may need clipping
+* Rare categories → grouped
+* Useful features → show class difference
 
 ### Confirming No Data Leakage
 
-All analysis in this section is based on raw data inspection only. No preprocessing transformations were fit on the full dataset before splitting, and no model training was performed as part of this exploratory analysis.
+All analysis is based only on raw data inspection. No preprocessing or model training was done before train-test split.
 
 ### Next Steps
 
-Using these documented findings, the next step is to design preprocessing transformations that address skewness, outliers, and categorical imbalance while preserving the dataset's original structure.
+* Handle skewness
+* Handle outliers
+* Balance categorical data
+* Prepare preprocessing pipeline
 
 ---
 
 ## Feature Type Definition
 
-This section explicitly defines which features are numerical and which are categorical based on conceptual reasoning and domain understanding, not automatic dtype detection.
-
-### Design Principle
-
-Feature types are determined by how the model should interpret them, not by how they are stored in the dataset. An integer column can be categorical. A string column may represent ordinal structure. Binary columns require careful consideration of their semantic meaning.
-
 ### Target Variable
 
-**Column Name:** `readmitted`
-
-**Type:** Binary Classification (0/1)
-
-**Business Meaning:**  
-Indicates whether a patient was readmitted to the hospital within 30 days of discharge. This is the prediction target for the ML model.
-
-- `0` = Patient was NOT readmitted within 30 days
-- `1` = Patient WAS readmitted within 30 days
-
-**Why This Matters:**  
-30-day readmission is a critical healthcare quality metric. High readmission rates indicate potential gaps in discharge planning, patient education, or follow-up care. Predicting readmission risk allows hospitals to:
-- Allocate resources to high-risk patients
-- Implement targeted intervention programs
-- Improve care coordination and reduce costs
-
----
+* **Column:** `readmitted`
+* **Type:** Binary (0/1)
 
 ### Numerical Features
 
-Numerical features represent continuous or discrete quantities where arithmetic operations (mean, distance, scaling) are meaningful. These features will be scaled using `StandardScaler` to ensure all features contribute equally to distance-based calculations and gradient descent.
-
-| Feature | Type | Range | Why Numerical | Scaling Applied |
-|---------|------|-------|---------------|-----------------|
-| `age` | Continuous | 0-95 years | Age is a continuous quantity. Older patients may have different readmission risk due to comorbidities and frailty. Arithmetic operations (mean age, age difference) are meaningful. | Yes (StandardScaler) |
-| `length_of_stay` | Continuous | 1-30 days | Duration of hospital stay in days. Longer stays may indicate severity and correlate with readmission. Distance between stay durations is meaningful. | Yes (StandardScaler) |
-| `num_procedures` | Discrete Count | 0-10 | Number of medical procedures performed during the visit. More procedures may indicate complexity. Treated as numerical because counts are ordered and distances are meaningful (2 procedures is closer to 3 than to 10). | Yes (StandardScaler) |
-| `num_medications` | Discrete Count | 0-20 | Number of medications administered. Higher medication count may indicate chronic conditions or polypharmacy risk. Magnitude matters for prediction. | Yes (StandardScaler) |
-| `num_diagnoses` | Discrete Count | 0-10 | Number of recorded diagnoses. More diagnoses suggest comorbidity and complexity. Treated as numerical because the count magnitude is predictive. | Yes (StandardScaler) |
-
-**Justification for Scaling:**  
-Without scaling, features with larger ranges (e.g., `num_medications` ranging 0-20) would dominate distance calculations compared to features with smaller ranges (e.g., `num_procedures` ranging 0-10). StandardScaler transforms each feature to have mean=0 and standard deviation=1, ensuring equal contribution to the model.
-
-**Edge Case: Why Counts Are Numerical:**  
-While `num_procedures`, `num_medications`, and `num_diagnoses` are discrete integers, they are treated as numerical rather than categorical because:
-1. The magnitude matters (5 medications is meaningfully different from 15)
-2. Ordering is inherent (more is different from less)
-3. Arithmetic operations (mean, median) are interpretable
-4. Tree-based models benefit from treating them as continuous
-
----
+* age
+* length_of_stay
+* num_procedures
+* num_medications
+* num_diagnoses
 
 ### Categorical Features
 
-Categorical features represent discrete groups or labels where arithmetic operations are not meaningful. These features will be one-hot encoded to create binary indicator variables for each category.
-
-| Feature | Type | Categories | Why Categorical | Encoding Strategy |
-|---------|------|------------|-----------------|-------------------|
-| `department` | Nominal | Emergency, ICU, General Medicine, Surgery, Pediatrics | No inherent order between departments. Each department may have different readmission patterns due to patient population and care protocols. | One-Hot Encoding |
-| `gender` | Nominal | Male, Female, Other | No natural ordering. Gender may correlate with certain health outcomes, but Male is not "greater than" Female. | One-Hot Encoding |
-| `admission_type` | Nominal | Emergency, Elective, Urgent | Represents different admission contexts. While Emergency might seem "more urgent" than Elective, the relationship is not strictly linear. | One-Hot Encoding |
-| `bed_type` | Nominal | General, ICU, Private | Represents different care levels. While ICU suggests higher acuity than General, we treat as nominal to let the model learn relationships without imposing ordering. | One-Hot Encoding |
-
-**Justification for One-Hot Encoding:**  
-One-hot encoding creates separate binary features for each category (e.g., `department_Emergency`, `department_ICU`, etc.). This allows the model to learn independent effects for each category without assuming any ordering.
-
-**Why Not Ordinal Encoding?**  
-While some features (e.g., `bed_type`: General < ICU in terms of care intensity) could be argued as ordinal, we treat them as nominal because:
-1. The ordering is not universally agreed upon (is Private "higher" than General?)
-2. One-hot encoding is safer and lets the model learn relationships from data
-3. Tree-based models (Random Forest) handle one-hot encoding well without dimensionality issues
-4. Imposing incorrect ordering can harm model performance
-
-**Handling Unknown Categories:**  
-The preprocessing pipeline uses `handle_unknown='ignore'` in `OneHotEncoder`. This means if a new category appears at inference time (e.g., a new department), all one-hot features for that column will be 0, preventing pipeline crashes.
-
----
+* department
+* gender
+* admission_type
+* bed_type
 
 ### Excluded Columns
 
-These columns must be removed before model training to prevent data leakage, avoid using non-predictive identifiers, or exclude features that are not available at prediction time.
-
-| Column | Type | Why Excluded | Risk if Included |
-|--------|------|--------------|------------------|
-| `patient_id` | Identifier | Unique identifier with no predictive value. Each patient has a different ID. | Model would memorize individual patients rather than learn generalizable patterns. Causes severe overfitting. |
-| `admission_date` | Timestamp | Raw date is not useful for prediction. While temporal patterns exist (e.g., seasonal trends), the raw timestamp is not informative. | Model might learn spurious correlations with specific dates in training data. Could be engineered into features (day_of_week, month) in future iterations. |
-| `discharge_date` | Timestamp | Not available at admission time (prediction time). Discharge date is only known after the visit ends. | SEVERE DATA LEAKAGE. Including this would allow the model to "cheat" by using information from the future. Model would perform well in training but fail in production. |
-
-**Critical Note on `length_of_stay`:**  
-`length_of_stay` is derived from `admission_date` and `discharge_date` but is included as a numerical feature because it represents the duration of care, which is a valid predictor of readmission risk. However, in a real-world deployment, this feature requires careful handling:
-
-- **Post-discharge prediction:** If predicting readmission after discharge, `length_of_stay` is known and valid.
-- **At-admission prediction:** If predicting at admission time, `length_of_stay` is not yet known and must be either:
-  - Excluded from the model
-  - Replaced with a predicted/estimated value
-  - Used in a separate model that runs post-discharge
-
-For this project, we assume post-discharge prediction where `length_of_stay` is known.
+* patient_id → identifier
+* admission_date → raw timestamp
+* discharge_date → data leakage
 
 ---
 
-### Edge Cases and Special Handling
+## Data Leakage Prevention
 
-#### Binary Columns (0/1)
-
-**Target Column (`readmitted`):**  
-This is a binary column stored as integers (0/1). It is the prediction target, not a feature, so it is excluded from the feature matrix.
-
-**No Other Binary Features:**  
-The current dataset does not contain binary features (e.g., `is_smoker`, `has_diabetes`). If such features existed, they would be treated as:
-- **Categorical** if they represent distinct groups (e.g., smoker vs non-smoker)
-- **Numerical** if they represent a true binary quantity where 0 and 1 have magnitude meaning
-
-#### High-Cardinality Columns
-
-**Current Status:**  
-All categorical features have low-to-moderate cardinality:
-- `department`: 5 categories
-- `gender`: 3 categories
-- `admission_type`: 3 categories
-- `bed_type`: 3 categories
-
-**If High-Cardinality Features Existed:**  
-For features with >20 categories (e.g., `diagnosis_code` with 100+ values), we would:
-1. Group rare categories into an "Other" category
-2. Use target encoding or frequency encoding instead of one-hot encoding
-3. Consider dimensionality reduction techniques
-
-#### Timestamp Columns
-
-**Current Handling:**  
-`admission_date` and `discharge_date` are excluded from modeling. They are used only to derive `length_of_stay` during data cleaning.
-
-**Future Enhancement:**  
-Temporal features could be engineered:
-- `admission_day_of_week` (Monday=0, Sunday=6)
-- `admission_month` (1-12)
-- `admission_hour` (0-23)
-- `is_weekend` (binary)
-
-These would be treated as categorical (one-hot encoded) or cyclical (sine/cosine encoding for hour/month).
-
----
-
-### Validation and Reproducibility
-
-The feature type definitions are enforced programmatically in `src/config.py`:
-
-```python
-# Explicit feature lists
-NUMERICAL_FEATURES = ["age", "length_of_stay", "num_procedures", "num_medications", "num_diagnoses"]
-CATEGORICAL_FEATURES = ["department", "gender", "admission_type", "bed_type"]
-EXCLUDED_COLUMNS = ["patient_id", "admission_date", "discharge_date"]
-ALL_FEATURES = NUMERICAL_FEATURES + CATEGORICAL_FEATURES
-
-# Validation assertions
-assert TARGET_COLUMN not in ALL_FEATURES
-assert len(set(NUMERICAL_FEATURES) & set(CATEGORICAL_FEATURES)) == 0
-for col in EXCLUDED_COLUMNS:
-    assert col not in ALL_FEATURES
-```
-
-The preprocessing pipeline validates feature separation:
-
-```python
-from src.data_preprocessing import validate_feature_separation, print_feature_summary
-
-# After splitting data
-validate_feature_separation(X_train, y_train)  # Ensures target not in features
-print_feature_summary(X_train)                  # Prints feature counts
-```
-
-**Output Example:**
-
-```
-============================================================
-FEATURE TYPE SUMMARY
-============================================================
-Total features in DataFrame: 9
-
-Numerical features: 5
-  - age
-  - length_of_stay
-  - num_procedures
-  - num_medications
-  - num_diagnoses
-
-Categorical features: 4
-  - department
-  - gender
-  - admission_type
-  - bed_type
-
-Total defined features: 9
-============================================================
-```
-
----
-
-### Reproducibility Guarantee
-
-Another engineer can reproduce this feature grouping by:
-
-1. Reading `src/config.py` for explicit feature lists
-2. Reading this README section for conceptual justification
-3. Running `python main.py` to see validation output
-4. Inspecting `src/data_preprocessing.py` for validation logic
-
-No ambiguity exists. Feature types are deliberate, documented, and enforced by code.
-
-### Key Design Decisions
-
-1. **`fit_transform` only on training data** — the preprocessing pipeline is fitted
-   exclusively on `X_train`. `X_test` and new inference data use `.transform()`.
-   This prevents data leakage.
-
-2. **Functions return values, never print** — core functions return dicts, DataFrames,
-   or model objects. Only the orchestration layer (`main.py`) prints to the console.
-
-3. **Explicit `random_state` everywhere** — all stochastic operations accept a
-   `random_state` parameter, defaulting to the centralised value in `config.py`.
-
-4. **Centralised configuration** — no hardcoded paths or magic numbers inside
-   functions. Everything flows from `src/config.py`.
-
----
-
-## Installation & Setup
-
-### Prerequisites
-
-- Python 3.12
-- Git
-
-### Environment Setup
-
-Create a dedicated virtual environment in the project root and install pinned dependencies.
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/<your-username>/S86-0326-MediWorks-Machine-Learning.git
-cd S86-0326-MediWorks-Machine-Learning
-
-# 2. Create the virtual environment
-python -m venv venv
-
-# 3. Activate the environment
-# Windows PowerShell
-venv\Scripts\Activate.ps1
-# Windows Command Prompt
-venv\Scripts\activate.bat
-# macOS / Linux
-source venv/bin/activate
-
-# 4. Install dependencies
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-### Reproduce from scratch
-
-```bash
-git clone https://github.com/<your-username>/S86-0326-MediWorks-Machine-Learning.git
-cd S86-0326-MediWorks-Machine-Learning
-python -m venv venv
-source venv/bin/activate          # macOS / Linux
-# or venv\Scripts\Activate.ps1  # Windows PowerShell
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-### Notes
-
-- The `venv/` folder is excluded from version control in `.gitignore`.
-- This setup uses a local Python environment so global packages do not affect project execution.
-- This branch is prepared for pull request submission and contains the reproducible environment setup updates.
-- To exit the environment, run `deactivate`.
-- If Python is not available as `python`, use `python3` on your system.
-
----
-
-## Running the Pipeline
-
-```bash
-# Step 1 — (Optional) Generate synthetic dataset if you don't have a real one
-python generate_sample_dataset.py
-
-# Step 2 — Run the full training pipeline
-python main.py
-```
-
-Expected output:
-
-```
-============================================================
-  MEDILENS — Hospital Readmission Prediction Pipeline
-============================================================
-
-[1/7] Loading raw data ...
-      Loaded 1,000 rows × 13 columns.
-[2/7] Validating schema ...
-      Schema OK — all required columns present.
-[3/7] Cleaning data ...
-[4/7] Splitting data (test_size=0.2, random_state=42) ...
-      Training rows : 800
-      Test rows     : 200
-[5/7] Dropping ID columns and building preprocessing pipeline ...
-[6/7] Training Random Forest model ...
-[7/7] Evaluating model on held-out test set ...
-
-  ── Evaluation Results ──────────────────────────────────
-  accuracy    : 0.7650
-  precision   : 0.6200
-  recall      : 0.5800
-  f1          : 0.5993
-  roc_auc     : 0.8100
-  ────────────────────────────────────────────────────────
-
-  Model saved    → models/random_forest_readmission.pkl
-  Pipeline saved → models/preprocessing_pipeline.pkl
-  Metrics report → reports/evaluation_metrics.json
-
-  Pipeline complete. MEDILENS model is ready.
-```
-
----
-
-## API Endpoints (Sample)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/upload` | Upload hospital dataset |
-| `GET`  | `/api/summary` | Overall summary report |
-| `GET`  | `/api/peak-times` | Peak admission analysis |
-| `GET`  | `/api/los` | Length of stay analytics |
-| `GET`  | `/api/dept-load` | Department load report |
-| `POST` | `/api/predict-readmission` | 30-day readmission prediction |
-
----
-
-## Future Enhancements
-
-- Real-time hospital data integration  
-- Doctor availability prediction  
-- Emergency patient inflow forecasting  
-- SMS / Email overload alerts  
-- Bed allocation recommendation engine  
-- Patient readmission prediction using LSTM  
-- FastAPI backend wiring `predict()` to a REST endpoint  
+* Fit only on training data
+* Transform test data
+* No preprocessing on full dataset
 
 ---
 
@@ -605,229 +247,83 @@ Expected output:
 
 ### Purpose
 
-Before deploying a complex ML model, we must establish that it provides meaningful improvement over simple heuristics. The baseline model serves as a minimum performance benchmark that any useful model must exceed.
+Establish a minimum benchmark to ensure the ML model provides real value.
 
 ### Baseline Strategy
 
-**Model:** `DummyClassifier` with `most_frequent` strategy
+* Model: `DummyClassifier` (most_frequent)
+* Always predicts majority class
 
-**How it works:** Always predicts the majority class (class 0: not readmitted)
+### Key Insight
 
-**Why this baseline?**
-- Represents the simplest possible prediction strategy
-- Requires no feature engineering or model training
-- Reveals dataset characteristics (class imbalance)
-- Provides a lower bound for model performance
-- Prevents misleading accuracy claims on imbalanced data
+* Accuracy alone is misleading
+* Precision, Recall, F1, ROC-AUC are essential
+* Baseline ensures model usefulness
 
-### Running the Comparison
+### Run Comparison
 
 ```bash
 python run_baseline_comparison.py
 ```
 
-This script:
-1. Splits data (train/test) before any model fitting
-2. Trains baseline on training data only (no leakage)
-3. Trains main model on same training data
-4. Evaluates both models on test data using identical metrics
-5. Generates comparison reports
+---
 
-### Expected Output
+## Feature Engineering Notes
 
-```
-============================================================
-MODEL COMPARISON: BASELINE vs MAIN MODEL
-============================================================
-
-Metric          Baseline     Main Model   Improvement     % Change    
---------------------------------------------------------------------------------
-accuracy        0.8500       0.9200       +0.0700         +8.2%       
-precision       0.0000       0.7800       +0.7800         +∞%         
-recall          0.0000       0.6500       +0.6500         +∞%         
-f1              0.0000       0.7100       +0.7100         +∞%         
-roc_auc         0.5000       0.8900       +0.3900         +78.0%      
---------------------------------------------------------------------------------
-
-Summary: Main model shows significant improvement over baseline
-Average Improvement: 0.5000
-
-Key Improvements:
-  ✓ roc_auc: +0.3900 (78.0%)
-  ✓ precision: +0.7800 (+∞%)
-  ✓ recall: +0.6500 (+∞%)
-  ✓ f1: +0.7100 (+∞%)
-```
-
-### Understanding the Results
-
-**Baseline Performance:**
-- **Accuracy: ~85%** - Misleading! Just predicting "not readmitted" every time
-- **Precision/Recall/F1: 0.00** - Cannot identify any readmission cases
-- **ROC-AUC: 0.50** - No better than random guessing
-
-**Main Model Performance:**
-- **Accuracy: ~92%** - Modest improvement, but not the full story
-- **Precision: ~78%** - When predicting readmission, correct 78% of the time
-- **Recall: ~65%** - Catches 65% of actual readmission cases
-- **F1: ~71%** - Balanced measure showing real predictive power
-- **ROC-AUC: ~89%** - Strong discrimination ability
-
-**Key Insights:**
-1. **Accuracy alone is misleading** - Baseline achieves 85% by always predicting "no readmission"
-2. **Precision/Recall matter more** - Main model can actually identify readmission risk
-3. **ROC-AUC shows true improvement** - 0.50 → 0.89 demonstrates real learning
-4. **Model is justified** - Significant improvement over trivial baseline
-
-### Why Baseline Accuracy is Misleading
-
-In imbalanced classification (85% not readmitted, 15% readmitted):
-
-**Baseline achieves 85% accuracy by:**
-- Predicting "not readmitted" for every patient
-- Never identifying a single readmission case
-- Recall = 0.00 (useless for the actual task)
-
-**This reveals:**
-- Accuracy is dominated by the majority class
-- A model with 86% accuracy but 0% recall is worse than baseline
-- Must evaluate precision, recall, F1, and ROC-AUC for imbalanced data
-
-### Scenario Analysis: Churn Prediction
-
-**Dataset:** 88% no churn, 12% churn
-
-**Baseline (majority class):**
-- Accuracy: 88%
-- Recall (churn): 0.00
-- F1 (churn): 0.00
-
-**Model A:**
-- Accuracy: 90%
-- Recall (churn): 0.42
-- F1 (churn): 0.48
-
-**Model B:**
-- Accuracy: 89%
-- Recall (churn): 0.05
-- F1 (churn): 0.08
-
-**Analysis:**
-
-1. **Why is 88% baseline accuracy misleading?**
-   - It's achieved by never predicting churn
-   - Provides zero business value (cannot identify at-risk customers)
-   - Accuracy is inflated by the majority class
-
-2. **Is Model A meaningfully better?**
-   - YES! Recall of 0.42 means it catches 42% of churners
-   - F1 of 0.48 shows balanced precision/recall
-   - Can now take action on high-risk customers
-
-3. **Which metric matters most?**
-   - **Recall** - Missing a churner is costly (lost revenue)
-   - **F1** - Balances precision (don't annoy non-churners) and recall
-   - **NOT accuracy** - Dominated by majority class
-
-4. **Is Model B acceptable?**
-   - NO! Recall of 0.05 means it only catches 5% of churners
-   - Barely better than baseline (which catches 0%)
-   - Not actionable for business purposes
-
-### Reports Generated
-
-**JSON Report** (`reports/baseline_comparison.json`):
-- Detailed metrics for both models
-- Absolute and relative improvement
-- Baseline strategy description
-- Class distribution analysis
-
-**CSV Table** (`reports/baseline_vs_main_model.csv`):
-- Side-by-side comparison table
-- Easy to import into presentations/reports
-
-### Key Takeaways
-
-1. **Always establish a baseline** - Proves your model adds value
-2. **Use identical metrics** - Fair comparison requires same evaluation
-3. **Fit on training data only** - Prevents data leakage
-4. **Look beyond accuracy** - Especially for imbalanced data
-5. **Justify model complexity** - Baseline shows if ML is needed
-
-### Video Demo Guide (3-5 minutes)
-
-**Structure:**
-
-1. **Introduction (30 sec)**
-   - "I'm demonstrating baseline model comparison for MEDILENS readmission prediction"
-   - Show repository and run_baseline_comparison.py
-
-2. **Implementation Walkthrough (90 sec)**
-   - Show baseline.py: DummyClassifier with most_frequent strategy
-   - Explain: "Always predicts majority class (not readmitted)"
-   - Show data split: "Baseline fit only on training data - no leakage"
-   - Show model_comparison.py: "Identical metrics for fair comparison"
-
-3. **Run Comparison (30 sec)**
-   - Execute: `python run_baseline_comparison.py`
-   - Show output table with metrics side-by-side
-
-4. **Results Explanation (60 sec)**
-   - "Baseline: 85% accuracy but 0% recall - useless for identifying readmissions"
-   - "Main model: 92% accuracy AND 65% recall - actually catches readmission cases"
-   - "ROC-AUC: 0.50 → 0.89 shows real learning, not just majority class prediction"
-   - "Improvement is significant and meaningful"
-
-5. **Scenario Question (60 sec)**
-   - **Q: Why is 88% baseline accuracy misleading?**
-     - "It's achieved by never predicting churn - zero business value"
-   - **Q: Is Model A meaningfully better?**
-     - "Yes! 42% recall means we catch 42% of churners vs 0% for baseline"
-   - **Q: Which metric matters most?**
-     - "Recall and F1, not accuracy - we need to identify at-risk customers"
-   - **Q: Is 89% accuracy with 5% recall acceptable?**
-     - "No! Only catching 5% of churners is barely better than baseline"
-
-6. **Conclusion (30 sec)**
-   - "Baseline proves our model provides real value"
-   - "For imbalanced data, precision/recall/F1 matter more than accuracy"
-   - Show reports generated
+* Numerical features scaled using `StandardScaler`
+* Categorical features encoded using One-Hot Encoding
+* Train/test split done before preprocessing
+* Pipeline reusable for prediction
 
 ---
 
-## Assignment Validation
-
-To validate the feature type definitions, run:
+## Installation & Setup
 
 ```bash
-python validate_config.py
+git clone <repo-url>
+cd project
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-This will display:
-- All numerical features (5)
-- All categorical features (4)
-- All excluded columns (3)
-- Validation checks confirming no configuration errors
+---
 
-The implementation satisfies all assignment requirements:
-- ✅ Explicit feature groups in `config.py` (not auto-detected)
-- ✅ Feature validation code in `data_preprocessing.py`
-- ✅ Comprehensive documentation in this README
-- ✅ Clear reasoning for each feature type decision
-- ✅ Edge case handling documented
-- ✅ Leakage awareness and prevention
-- ✅ Reproducible by another engineer
+## Running the Pipeline
+
+```bash
+python main.py
+```
+
+---
+
+## API Endpoints
+
+* POST /upload
+* GET /summary
+* GET /peak-times
+* GET /los
+* GET /dept-load
+* POST /predict-readmission
+
+---
+
+## Future Enhancements
+
+* Real-time data integration
+* Doctor availability prediction
+* Alert system
+* LSTM models
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License
 
 ---
 
 ## Team
 
-**Team Name:** MediWorks  
-**Project:** MEDILENS  
-**Domain:** Healthcare Analytics + AI/ML
+**MediWorks**
+Healthcare analytics team behind MEDILENS.
