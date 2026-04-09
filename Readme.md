@@ -22,6 +22,7 @@ MEDILENS is an AI and Machine Learning-based hospital analytics platform that an
 * Feature Type Definition
 * Data Leakage Prevention
 * Baseline Model Comparison
+* Logistic Regression Classification Tutorial
 * Feature Engineering Notes
 * Installation & Setup
 * Running the Pipeline
@@ -154,6 +155,7 @@ S86-0326-MediWorks-Machine-Learning/
 │   ├── config.py
 │   ├── data_preprocessing.py
 │   ├── feature_engineering.py
+│   ├── logistic_regression_tutorial.py
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── persistence.py
@@ -265,6 +267,34 @@ Establish a minimum benchmark to ensure the ML model provides real value.
 ```bash
 python run_baseline_comparison.py
 ```
+
+---
+
+## Logistic Regression Classification Tutorial
+
+This repository now includes a complete, code-first Logistic Regression lesson for binary classification (no video script format).
+
+### What This Covers
+
+* Binary classification intuition and probability prediction
+* Majority-class baseline using `DummyClassifier`
+* Leakage-safe preprocessing + Logistic Regression pipeline
+* Evaluation using Accuracy, F1, ROC-AUC, and classification report
+* Cross-validation for stability checks
+* Hyperparameter tuning for regularization strength (`C`)
+* Coefficient interpretation in log-odds and odds ratio form
+
+### Run the Tutorial
+
+```bash
+python -m src.logistic_regression_tutorial
+```
+
+### Why This Matters
+
+* Logistic Regression is a strong first benchmark for classification.
+* It is interpretable, fast, and often competitive with more complex models.
+* It helps validate whether the dataset has real predictive signal before trying heavier models.
 
 ---
 
