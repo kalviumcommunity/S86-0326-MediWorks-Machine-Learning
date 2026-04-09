@@ -357,3 +357,83 @@ MIT License
 
 **MediWorks**
 Healthcare analytics team behind MEDILENS.
+
+---
+
+## Assignment: Evaluating Classification Models Using Precision and Recall
+
+### Run
+
+```bash
+python evaluate_precision_recall.py
+```
+
+### What It Does
+
+1. Stratified train/test split (no leakage)
+2. Majority-class baseline (DummyClassifier)
+3. Precision, Recall, F1, F2, Accuracy on test set
+4. Confusion matrix with FN/FP breakdown
+5. Threshold adjustment (0.5 → 0.2) to shift Precision/Recall trade-off
+6. Precision-Recall curve saved to `reports/precision_recall_curve.png`
+7. 5-fold cross-validation for Precision, Recall, F1
+8. Business interpretation for readmission prediction
+
+### Output Files
+
+* `reports/precision_recall_evaluation.json`
+* `reports/precision_recall_curve.png`
+
+### Key Findings
+
+* Recall is the priority metric — missed readmissions (FN) are more costly than false alerts (FP)
+* Baseline recall = 0% (detects no readmissions); model must meaningfully exceed this
+* Lowering threshold below 0.5 improves recall at the cost of precision
+* F2-score is the recommended single metric (weights recall 2× over precision)
+
+### Scenario: Fraud Detection
+
+* FN cost: ₹50,000 per missed fraud | FP cost: ₹1,000 per false alarm
+* FN is 50× more costly → Recall must be prioritized
+* Lower threshold to catch more fraud; accept more false alarms
+* Accuracy is irrelevant — 98% accuracy with 0% recall is a complete failure
+
+---
+
+## Assignment: Evaluating Classification Models Using Accuracy
+
+### Run
+
+```bash
+python evaluate_classification_accuracy.py
+```
+
+### What It Does
+
+1. Stratified train-test split (80/20)
+2. Baseline model (DummyClassifier - most_frequent)
+3. RandomForest model training
+4. Test set evaluation with multiple metrics
+5. Confusion matrix analysis
+6. 5-fold cross-validation
+7. Comprehensive interpretation
+
+### Output Files
+
+* `reports/classification_accuracy_evaluation.json`
+* `reports/baseline_vs_model_comparison.csv`
+
+### Key Questions Answered
+
+1. Does the model meaningfully outperform baseline? — Compares F1-score and recall improvements
+2. Is Accuracy reliable for this dataset? — Analyzes class imbalance impact
+3. What does confusion matrix reveal? — Shows TP, TN, FP, FN breakdown
+4. Are minority classes detected properly? — Evaluates readmission detection rate
+
+### Scenario: Fraud Detection Analysis
+
+* Baseline accuracy is misleading — 98% accuracy with 0% fraud detection
+* Model is meaningfully better — detects 10% of fraud vs 0%
+* Accuracy barely changes — fraud is only 2% of data
+* Recall is most important — missing fraud is costly
+* Never rely on accuracy alone — use confusion matrix, recall, precision, F1
