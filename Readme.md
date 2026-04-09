@@ -228,6 +228,7 @@ All analysis is based only on raw data inspection. No preprocessing or model tra
 * gender
 * admission_type
 * bed_type
+asdfghjkl;'
 
 ### Excluded Columns
 

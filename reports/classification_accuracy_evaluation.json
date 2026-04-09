@@ -1,0 +1,188 @@
+{
+    "metadata": {
+        "timestamp": "2026-04-09T14:25:04.312118",
+        "dataset": "C:\\Users\\bunny\\Downloads\\S86-0326-MediWorks-Machine-Learning-main (2)\\S86-0326-MediWorks-Machine-Learning-main\\data\\raw\\hospital_visits.csv",
+        "target_column": "readmitted",
+        "test_size": 0.2,
+        "random_state": 42
+    },
+    "data_summary": {
+        "total_samples": 1000,
+        "train_samples": 800,
+        "test_samples": 200,
+        "class_distribution": {
+            "0": 826,
+            "1": 174
+        },
+        "train_distribution": {
+            "0": 661,
+            "1": 139
+        },
+        "test_distribution": {
+            "0": 165,
+            "1": 35
+        }
+    },
+    "baseline_metrics": {
+        "accuracy": 0.825,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "balanced_accuracy": 0.5,
+        "confusion_matrix": [
+            [
+                165,
+                0
+            ],
+            [
+                35,
+                0
+            ]
+        ]
+    },
+    "model_metrics": {
+        "accuracy": 0.79,
+        "precision": 0.23076923076923078,
+        "recall": 0.08571428571428572,
+        "f1": 0.125,
+        "balanced_accuracy": 0.5125541125541125,
+        "confusion_matrix": [
+            [
+                155,
+                10
+            ],
+            [
+                32,
+                3
+            ]
+        ]
+    },
+    "cross_validation": {
+        "accuracy": {
+            "mean": 0.8087500000000001,
+            "std": 0.010155048005794948,
+            "scores": [
+                0.81875,
+                0.81875,
+                0.8125,
+                0.8,
+                0.79375
+            ]
+        },
+        "precision": {
+            "mean": 0.33121212121212124,
+            "std": 0.10264343588914723,
+            "scores": [
+                0.375,
+                0.4666666666666667,
+                0.375,
+                0.16666666666666666,
+                0.2727272727272727
+            ]
+        },
+        "recall": {
+            "mean": 0.1222222222222222,
+            "std": 0.06984126984126983,
+            "scores": [
+                0.1111111111111111,
+                0.25,
+                0.10714285714285714,
+                0.03571428571428571,
+                0.10714285714285714
+            ]
+        },
+        "f1": {
+            "mean": 0.17526926334039877,
+            "std": 0.08567502691379252,
+            "scores": [
+                0.17142857142857143,
+                0.32558139534883723,
+                0.16666666666666666,
+                0.058823529411764705,
+                0.15384615384615385
+            ]
+        }
+    },
+    "comparison": [
+        {
+            "Metric": "Accuracy",
+            "Baseline": 0.825,
+            "Model": 0.79,
+            "Improvement": -0.03499999999999992,
+            "Improvement %": -4.242424242424233
+        },
+        {
+            "Metric": "Precision",
+            "Baseline": 0.0,
+            "Model": 0.23076923076923078,
+            "Improvement": 0.23076923076923078,
+            "Improvement %": Infinity
+        },
+        {
+            "Metric": "Recall",
+            "Baseline": 0.0,
+            "Model": 0.08571428571428572,
+            "Improvement": 0.08571428571428572,
+            "Improvement %": Infinity
+        },
+        {
+            "Metric": "F1-Score",
+            "Baseline": 0.0,
+            "Model": 0.125,
+            "Improvement": 0.125,
+            "Improvement %": Infinity
+        },
+        {
+            "Metric": "Balanced Accuracy",
+            "Baseline": 0.5,
+            "Model": 0.5125541125541125,
+            "Improvement": 0.01255411255411254,
+            "Improvement %": 2.510822510822508
+        }
+    ],
+    "interpretation": {
+        "baseline_comparison": {
+            "accuracy_improvement": -0.03499999999999992,
+            "f1_improvement": 0.125,
+            "meaningful_improvement": true,
+            "assessment": "Model improves accuracy by -0.0350 and F1-score by 0.1250. This is meaningful improvement."
+        },
+        "class_imbalance": {
+            "is_imbalanced": true,
+            "majority_class": 0,
+            "majority_percentage": 82.625,
+            "distribution": {
+                "0": 661,
+                "1": 139
+            },
+            "assessment": "Dataset is IMBALANCED with 82.6% in class 0. Accuracy alone is misleading."
+        },
+        "accuracy_reliability": {
+            "is_reliable": false,
+            "reasoning": "Accuracy is NOT reliable for this dataset because:\n  - Dataset is imbalanced (majority class dominates)\n  - A naive baseline achieves high accuracy by always predicting majority class\n  - Accuracy doesn't reflect minority class (readmission) detection performance"
+        },
+        "confusion_matrix_insights": {
+            "true_positives": 3,
+            "false_negatives": 32,
+            "minority_class_recall": 0.08571428571428572,
+            "minority_class_precision": 0.23076923076923078,
+            "minority_class_detected": true,
+            "assessment": "Model detects 3 out of 35 minority class samples (Recall: 0.0857). Minority class is being detected. However, detection rate is low."
+        },
+        "cross_validation": {
+            "is_stable": true,
+            "accuracy_std": 0.010155048005794948,
+            "assessment": "Model is STABLE across folds (std: 0.0102). Performance is consistent."
+        },
+        "recommended_metrics": {
+            "primary": "F1-score",
+            "secondary": [
+                "Precision",
+                "Recall",
+                "Balanced Accuracy",
+                "ROC-AUC"
+            ],
+            "reasoning": "For imbalanced datasets, F1-score balances Precision and Recall, providing a better measure of model performance on minority class."
+        }
+    }
+}
