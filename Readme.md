@@ -23,6 +23,7 @@ MEDILENS is an AI and Machine Learning-based hospital analytics platform that an
 * Data Leakage Prevention
 * Baseline Model Comparison
 * Logistic Regression Classification Tutorial
+* F1-Score Evaluation Tutorial
 * Feature Engineering Notes
 * Installation & Setup
 * Running the Pipeline
@@ -295,6 +296,31 @@ python -m src.logistic_regression_tutorial
 * Logistic Regression is a strong first benchmark for classification.
 * It is interpretable, fast, and often competitive with more complex models.
 * It helps validate whether the dataset has real predictive signal before trying heavier models.
+
+---
+
+## F1-Score Evaluation Tutorial
+
+This repository includes a dedicated F1-first tutorial focused on imbalanced classification evaluation (text-first, code-first, no recording flow).
+
+### What This Covers
+
+* Why F1 uses harmonic mean (and why arithmetic mean can mislead)
+* Baseline vs trained model comparison using Precision, Recall, and F1
+* Why accuracy can look high while F1 is poor on imbalanced data
+* Validation-safe threshold tuning for better F1
+* Cross-validation stability checks with F1
+* Micro, Macro, and Weighted F1 for multi-class settings
+
+### Run the Tutorial
+
+```bash
+python -m src.f1_score_tutorial
+```
+
+### Reporting Rule
+
+Never report F1 alone. Always include Precision, Recall, class-wise metrics, and baseline comparison.
 
 ---
 
